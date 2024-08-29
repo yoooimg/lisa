@@ -1,5 +1,13 @@
 package it.unive.lisa.analysis.numeric;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import it.unive.lisa.analysis.AbstractState;
+import it.unive.lisa.analysis.AnalysisState;
 import it.unive.lisa.analysis.BaseLattice;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
@@ -8,13 +16,17 @@ import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
+import it.unive.lisa.program.cfg.statement.BinaryExpression;
+import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.Operator;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.operator.AdditionOperator;
 import it.unive.lisa.symbolic.value.operator.DivisionOperator;
 import it.unive.lisa.symbolic.value.operator.ModuloOperator;
 import it.unive.lisa.symbolic.value.operator.MultiplicationOperator;
+import it.unive.lisa.symbolic.value.operator.NegatableOperator;
 import it.unive.lisa.symbolic.value.operator.RemainderOperator;
 import it.unive.lisa.symbolic.value.operator.SubtractionOperator;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
@@ -482,7 +494,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		else
 			return environment.putState(id, update);
 	}
-
+	
 	@Override
 	public int compareTo(
 			Interval o) {
@@ -495,5 +507,78 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		if (o.isTop())
 			return -1;
 		return interval.compareTo(o.interval);
+	}
+
+	private Map<Pair<ValueEnvironment<Interval>, Pair<ValueExpression, ValueExpression>>, Pair<Interval, Interval>> cache = new HashMap<>(); 
+	public Pair<Interval, Interval> split(
+		ValueEnvironment<Interval> environment,
+		BinaryOperator operator,
+		ValueExpression left,
+		ValueExpression rigth,
+		ProgramPoint src,
+		ProgramPoint dest,
+		SemanticOracle oracle) throws SemanticException {
+		
+		Pair<ValueEnvironment<Interval>, Pair<ValueExpression, ValueExpression>> key = Pair.of(environment, Pair.of(left, rigth));
+		if(cache.containsKey(key)) {
+			return cache.get(key);
+		}
+		
+		ValueEnvironment<Interval> trueValueEnvironment = environment;
+		ValueEnvironment<Interval> falseValueEnvironment = environment;
+		Interval trueInterval = null;
+		Interval falseInterval = null;
+		BinaryOperator t = null; // caso true
+		BinaryOperator f = null; // caso false
+
+		if(operator == ComparisonEq.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonEq.INSTANCE.opposite();
+		} else if(operator == ComparisonNe.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonNe.INSTANCE.opposite();
+		} else if(operator == ComparisonGt.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonGt.INSTANCE.opposite();
+		} else if(operator == ComparisonLe.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonLe.INSTANCE.opposite();
+		} else if(operator == ComparisonGe.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonGe.INSTANCE.opposite();
+		} else if(operator == ComparisonLt.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
+		}
+
+		trueValueEnvironment = this.assumeBinaryExpression(trueValueEnvironment, t, left, rigth, src, dest, oracle);
+		trueInterval = unifyInterval(trueValueEnvironment);
+
+		falseValueEnvironment = this.assumeBinaryExpression(falseValueEnvironment, f, left, rigth, src, dest, oracle);
+		falseInterval = unifyInterval(falseValueEnvironment);
+
+		cache.put(key, Pair.of(trueInterval, falseInterval));
+		return Pair.of(trueInterval, falseInterval);
+	}
+
+	private Interval unifyInterval(ValueEnvironment<Interval> environment) throws SemanticException {
+		// Combina gli intervalli per tutti gli identificatori
+		Interval result = null;
+		if(!environment.isTop()) {
+			for (Identifier id : environment.getKeys()) {
+				Interval interval = environment.getState(id);
+				if(!interval.isTop()) {
+					if(result == null) {
+						result = interval;
+					} else {
+						result = result.lubAux(interval);
+					}
+				}
+			}
+		}
+		if (result == null) {
+			return Interval.BOTTOM;
+		}
+		return result;
 	}
 }
