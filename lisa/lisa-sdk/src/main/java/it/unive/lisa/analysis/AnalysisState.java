@@ -612,25 +612,22 @@ public class AnalysisState<A extends AbstractState<A>>
 		return new AnalysisState<>(state.withTopTypes(), computedExpressions, info);
 	}
 	
-
-
-	// Per ogni TrueEdge e FalsEdge, cache tiene traccia dello split di ogni possibile state
-	private Map<SymbolicExpression, Pair<AnalysisState<A>, AnalysisState<A>>> cache = new HashMap<>(); 
-
+	private final Map<Pair<SymbolicExpression, AbstractState<A>>, Pair<AnalysisState<A>, AnalysisState<A>>> cache = new HashMap<>();
 	public Pair<AnalysisState<A>, AnalysisState<A>> split(SymbolicExpression expression,
 			ProgramPoint src,
 			ProgramPoint des) {
-		
-		// cache restituisce gli splitStates corrispondenti ad una data espressione (questo evita di ricalcolare split ogni volta sia nel caso true che nel caso false)
-		if(cache.containsKey(expression)) {
-			return cache.get(expression);
+		Pair<SymbolicExpression, AbstractState<A>> key = Pair.of(expression, state);
+
+		if(cache.containsKey(key)) {
+			Pair<AnalysisState<A>, AnalysisState<A>> result = cache.get(key);
+			return result;
 		}
+
 		Pair<A, A> states = state.split(expression, src, des, state);
 		AnalysisState<A> trueState = new AnalysisState<>(states.getLeft(), computedExpressions, info);
 		AnalysisState<A> falseState = new AnalysisState<A>(states.getRight(), computedExpressions, info);
-		Pair<AnalysisState<A>, AnalysisState<A>> splitStates = Pair.of(trueState, falseState);
-		cache.put(expression, splitStates);
-		
+		Pair<AnalysisState<A>, AnalysisState<A>> splitStates = Pair.of(trueState, falseState);	
+		cache.put(key, splitStates);	
 		return splitStates;
 	}
 }
