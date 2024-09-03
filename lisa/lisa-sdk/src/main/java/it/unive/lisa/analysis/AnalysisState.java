@@ -617,7 +617,6 @@ public class AnalysisState<A extends AbstractState<A>>
 			ProgramPoint src,
 			ProgramPoint des) {
 		Pair<SymbolicExpression, AbstractState<A>> key = Pair.of(expression, state);
-
 		if(cache.containsKey(key)) {
             return cache.get(key);
 		}

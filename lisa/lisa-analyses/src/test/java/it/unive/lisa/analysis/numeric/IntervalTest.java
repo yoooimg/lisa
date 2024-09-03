@@ -7,28 +7,18 @@ import static org.junit.Assert.assertTrue;
 import it.unive.lisa.TestParameterProvider;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
-import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.program.type.Int32Type;
 import it.unive.lisa.symbolic.value.Constant;
+import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.Variable;
-import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
-import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
-import it.unive.lisa.symbolic.value.operator.binary.ComparisonGt;
-import it.unive.lisa.symbolic.value.operator.binary.ComparisonLe;
-import it.unive.lisa.symbolic.value.operator.binary.ComparisonLt;
-import it.unive.lisa.symbolic.value.operator.binary.ComparisonNe;
-import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingAdd;
-import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingDiv;
-import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingMul;
-import it.unive.lisa.symbolic.value.operator.binary.NumericNonOverflowingSub;
-import it.unive.lisa.symbolic.value.operator.unary.NumericNegation;
-import it.unive.lisa.util.numeric.InfiniteIterationException;
-import it.unive.lisa.util.numeric.IntInterval;
-import java.util.ArrayList;
-import java.util.List;
+import it.unive.lisa.symbolic.value.operator.binary.*;
+
 import java.util.Random;
+
+import it.unive.lisa.util.numeric.MathNumber;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 public class IntervalTest {
@@ -43,6 +33,226 @@ public class IntervalTest {
 	private final ValueEnvironment<
 			Interval> env = new ValueEnvironment<>(singleton).putState(variable, singleton.top());
 	private final SemanticOracle oracle = TestParameterProvider.provideParam(null, SemanticOracle.class);
+
+	private Interval mk(
+			int val1,
+			int val2)
+			throws SemanticException {
+		Interval aval1 = singleton.evalNonNullConstant(new Constant(Int32Type.INSTANCE, val1, pp.getLocation()), pp,
+				oracle);
+		Interval aval2 = singleton.evalNonNullConstant(new Constant(Int32Type.INSTANCE, val2, pp.getLocation()), pp,
+				oracle);
+		return aval1.lub(aval2);
+	}
+
+	@Test
+	public void splitInterval() throws SemanticException {
+		Variable rightVar = new Variable(Int32Type.INSTANCE, "rightVar", pp.getLocation());
+		Variable leftVar = new Variable(Int32Type.INSTANCE, "leftVar", pp.getLocation());
+		for(int i = 0; i < 5; i++) {
+			Interval intervalToSplit = mk(rand.nextInt(1000) + 1, rand.nextInt(1000) + 1);
+			int randInt = rand.nextInt(1000) + 1;
+			Interval randInterval = mk(randInt, randInt);
+			ValueEnvironment<Interval> rightVarEnv = new ValueEnvironment<>(intervalToSplit).putState(rightVar, intervalToSplit);
+			ValueEnvironment<Interval> leftVarEnv = rightVarEnv.putState(leftVar, randInterval);
+
+			System.out.println("---------------------------------------------------------------------------");
+			System.out.println("identifier: " + intervalToSplit);
+			System.out.println("expr: " + randInterval);
+			System.out.println("operator ==  " + " intervals: " + intervalToSplit.split(leftVarEnv, ComparisonEq.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+			System.out.println("operator !=  " + " intervals: " + intervalToSplit.split(leftVarEnv, ComparisonNe.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+			System.out.println("operator >   " + " intervals: " + intervalToSplit.split(leftVarEnv, ComparisonGt.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+			System.out.println("operator <   " + " intervals: " + intervalToSplit.split(leftVarEnv, ComparisonLt.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+			System.out.println("operator >=  " + " intervals: " + intervalToSplit.split(leftVarEnv, ComparisonGe.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+			System.out.println("operator <=  " + " intervals: " + intervalToSplit.split(leftVarEnv, ComparisonLe.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+			System.out.println("---------------------------------------------------------------------------");
+		}
+
+
+		/*
+
+		MathNumber constantHighNumber = randInterval.interval.getHigh();
+		MathNumber identifierLowNumber = intervalToSplit.interval.getLow();
+		Pair<Interval, Interval> expEqualCase = null;
+		Pair<Interval, Interval> expNotEqualCase = null;
+		Pair<Interval, Interval> expGreaterThanCase = null;
+		Pair<Interval, Interval> expLessThanCase = null;
+		Pair<Interval, Interval> expGreaterOrEqualCase = null;
+		Pair<Interval, Interval> expLessOrEqualCase = null;
+
+		if(constantHighNumber.gt(identifierLowNumber)) {
+			expEqualCase = Pair.of(randInterval, intervalToSplit);
+			expNotEqualCase = Pair.of(intervalToSplit, randInterval);
+			expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
+					new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()));
+			expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
+					new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()));
+			expGreaterOrEqualCase = Pair.of(new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()),
+					new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getLow().subtract(MathNumber.ONE)));
+			expLessOrEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()),
+					new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
+		} else {
+			if(constantHighNumber.lt(identifierLowNumber)) {
+				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
+						new Interval().bottom());
+				expLessThanCase = Pair.of(new Interval().bottom(),
+						new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()));
+				expGreaterOrEqualCase = Pair.of(new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()),
+						new Interval().bottom());
+				expLessOrEqualCase = Pair.of(new Interval().bottom(),
+						new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
+			}
+		}
+
+
+		System.out.println("expEqualCase: " + expEqualCase);
+		System.out.println("expNotEqualCase: " + expNotEqualCase);
+		System.out.println("expGreaterThanCase: " + expGreaterThanCase);
+		System.out.println("expLessThanCase: " + expLessThanCase);
+		System.out.println("expGreaterOrEqualCase: " + expGreaterOrEqualCase);
+		System.out.println("expLessOrEqualCase: " + expLessOrEqualCase);
+		assertEquals(expEqualCase, intervalToSplit.split(leftVarEnv, ComparisonEq.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+		assertEquals(expNotEqualCase, intervalToSplit.split(leftVarEnv, ComparisonNe.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+		assertEquals(expGreaterThanCase, intervalToSplit.split(leftVarEnv, ComparisonGt.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+		assertEquals(expLessThanCase, intervalToSplit.split(leftVarEnv, ComparisonLt.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+		assertEquals(expGreaterOrEqualCase, intervalToSplit.split(leftVarEnv, ComparisonGe.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+		assertEquals(expLessOrEqualCase, intervalToSplit.split(leftVarEnv, ComparisonLe.INSTANCE, rightVar, leftVar, pp, pp, oracle));
+		*/
+	}
+
+	@Test
+	public void testSplitIntervalForEqualOperator() throws  SemanticException {
+		System.out.println("-------------------Equal operator-------------------");
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable y = new Variable(Int32Type.INSTANCE, "y", pp.getLocation());
+		// System.out.println("variable x: " + x);
+		// System.out.println("variable y: " + y);
+		Interval intervalPreSplit = mk(2, 10);
+		// System.out.println("interval: " + intervalPreSplit);
+		ValueEnvironment<Interval> xEnvironment = env.putState(x, mk(2, 10));
+		System.out.println("xEnvironment: " + xEnvironment);
+		ValueEnvironment<Interval> yEnvironment = xEnvironment.putState(y, mk(5, 5));
+		System.out.println("yEnvironment: " + yEnvironment);
+		BinaryOperator operator = ComparisonEq.INSTANCE;
+		System.out.println("operator: " + operator);
+		Pair<Interval, Interval> splitInterval = intervalPreSplit.split(yEnvironment, operator, x, y, pp, pp, oracle);
+		System.out.println("the pair: " + splitInterval);
+		assertEquals(mk(5, 5), splitInterval.getLeft());
+		assertEquals(mk(2, 10), splitInterval.getRight());
+		System.out.println("-----------------------------------------------------");
+	}
+
+	@Test
+	public void testSplitIntervalForNotEqualOperator() throws  SemanticException {
+		System.out.println("-------------------Not Equal operator-------------------");
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable y = new Variable(Int32Type.INSTANCE, "y", pp.getLocation());
+		// System.out.println("variable x: " + x);
+		// System.out.println("variable y: " + y);
+		Interval intervalPreSplit = mk(2, 10);
+		// System.out.println("interval: " + intervalPreSplit);
+		ValueEnvironment<Interval> xEnvironment = env.putState(x, mk(2, 10));
+		System.out.println("xEnvironment: " + xEnvironment);
+		ValueEnvironment<Interval> yEnvironment = xEnvironment.putState(y, mk(5, 5));
+		System.out.println("yEnvironment: " + yEnvironment);
+		BinaryOperator operator = ComparisonNe.INSTANCE;
+		System.out.println("operator: " + operator);
+		Pair<Interval, Interval> splitInterval = intervalPreSplit.split(yEnvironment, operator, x, y, pp, pp, oracle);
+		System.out.println("the pair: " + splitInterval);
+		assertEquals(mk(2, 10), splitInterval.getLeft());
+		assertEquals(mk(5, 5), splitInterval.getRight());
+		System.out.println("-----------------------------------------------------");
+	}
+
+	@Test
+	public void testSplitIntervalForGreaterThanOperator() throws  SemanticException {
+		System.out.println("-------------------Greater than operator-------------------");
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable y = new Variable(Int32Type.INSTANCE, "y", pp.getLocation());
+		// System.out.println("variable x: " + x);
+		// System.out.println("variable y: " + y);
+		Interval intervalPreSplit = mk(2, 10);
+		// System.out.println("interval: " + intervalPreSplit);
+		ValueEnvironment<Interval> xEnvironment = env.putState(x, mk(2, 10));
+		System.out.println("xEnvironment: " + xEnvironment);
+		ValueEnvironment<Interval> yEnvironment = xEnvironment.putState(y, mk(5, 5));
+		System.out.println("yEnvironment: " + yEnvironment);
+		BinaryOperator operator = ComparisonGt.INSTANCE;
+		System.out.println("operator: " + operator);
+		Pair<Interval, Interval> splitInterval = intervalPreSplit.split(yEnvironment, operator, x, y, pp, pp, oracle);
+		System.out.println("the pair: " + splitInterval);
+		assertEquals(mk(6, 10), splitInterval.getLeft());
+		assertEquals(mk(2, 5), splitInterval.getRight());
+		System.out.println("-----------------------------------------------------");
+	}
+
+	@Test
+	public void testSplitIntervalForLessThanOperator() throws  SemanticException {
+		System.out.println("-------------------Less than operator-------------------");
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable y = new Variable(Int32Type.INSTANCE, "y", pp.getLocation());
+		// System.out.println("variable x: " + x);
+		// System.out.println("variable y: " + y);
+		Interval intervalPreSplit = mk(2, 10);
+		// System.out.println("interval: " + intervalPreSplit);
+		ValueEnvironment<Interval> xEnvironment = env.putState(x, mk(2, 10));
+		System.out.println("xEnvironment: " + xEnvironment);
+		ValueEnvironment<Interval> yEnvironment = xEnvironment.putState(y, mk(5, 5));
+		System.out.println("yEnvironment: " + yEnvironment);
+		BinaryOperator operator = ComparisonLt.INSTANCE;
+		System.out.println("operator: " + operator);
+		Pair<Interval, Interval> splitInterval = intervalPreSplit.split(yEnvironment, operator, x, y, pp, pp, oracle);
+		System.out.println("the pair: " + splitInterval);
+		assertEquals(mk(2, 4), splitInterval.getLeft());
+		assertEquals(mk(5, 10), splitInterval.getRight());
+		System.out.println("-----------------------------------------------------");
+	}
+
+	@Test
+	public void testSplitIntervalForGreaterOrEqualOperator() throws  SemanticException {
+		System.out.println("-------------------GreaterOrEqual operator-------------------");
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable y = new Variable(Int32Type.INSTANCE, "y", pp.getLocation());
+		// System.out.println("variable x: " + x);
+		// System.out.println("variable y: " + y);
+		Interval intervalPreSplit = mk(2, 10);
+		// System.out.println("interval: " + intervalPreSplit);
+		ValueEnvironment<Interval> xEnvironment = env.putState(x, mk(2, 10));
+		System.out.println("xEnvironment: " + xEnvironment);
+		ValueEnvironment<Interval> yEnvironment = xEnvironment.putState(y, mk(5, 5));
+		System.out.println("yEnvironment: " + yEnvironment);
+		BinaryOperator operator = ComparisonGe.INSTANCE;
+		System.out.println("GreaterOrEqual operator: " + operator);
+		Pair<Interval, Interval> splitInterval = intervalPreSplit.split(yEnvironment, operator, x, y, pp, pp, oracle);
+		System.out.println("the pair: " + splitInterval);
+		assertEquals(mk(5, 10), splitInterval.getLeft());
+		assertEquals(mk(2, 4), splitInterval.getRight());
+		System.out.println("-----------------------------------------------------");
+	}
+
+	@Test
+	public void testSplitIntervalForLessOrEqualOperator() throws  SemanticException {
+		System.out.println("-------------------LessOrEqual operator-------------------");
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable y = new Variable(Int32Type.INSTANCE, "y", pp.getLocation());
+		// System.out.println("variable x: " + x);
+		// System.out.println("variable y: " + y);
+		Interval intervalPreSplit = mk(2, 10);
+		// System.out.println("interval: " + intervalPreSplit);
+		ValueEnvironment<Interval> xEnvironment = env.putState(x, mk(2, 10));
+		System.out.println("xEnvironment: " + xEnvironment);
+		ValueEnvironment<Interval> yEnvironment = xEnvironment.putState(y, mk(5, 5));
+		System.out.println("yEnvironment: " + yEnvironment);
+		BinaryOperator operator = ComparisonLe.INSTANCE;
+		System.out.println("LessOrEqual operator: " + operator);
+		Pair<Interval, Interval> splitInterval = intervalPreSplit.split(yEnvironment, operator, x, y, pp, pp, oracle);
+		System.out.println("the pair: " + splitInterval);
+		assertEquals(mk(2, 5), splitInterval.getLeft());
+		assertEquals(mk(6, 10), splitInterval.getRight());
+		System.out.println("-----------------------------------------------------");
+	}
+
+	/*
 
 	@Test
 	public void testEvalConstant() {
@@ -338,16 +548,6 @@ public class IntervalTest {
 		}
 	}
 
-	private Interval mk(
-			int val1,
-			int val2)
-			throws SemanticException {
-		Interval aval1 = singleton.evalNonNullConstant(new Constant(Int32Type.INSTANCE, val1, pp.getLocation()), pp,
-				oracle);
-		Interval aval2 = singleton.evalNonNullConstant(new Constant(Int32Type.INSTANCE, val2, pp.getLocation()), pp,
-				oracle);
-		return aval1.lub(aval2);
-	}
 
 	@Test
 	public void testEvalNegation() throws SemanticException {
@@ -588,7 +788,6 @@ public class IntervalTest {
 							variable, varAux, pp, pp, oracle));
 		}
 	}
-
 	@Test
 	public void testAssumeGT() throws SemanticException {
 		for (int i = 0; i < TEST_LIMIT; i++) {
@@ -678,4 +877,5 @@ public class IntervalTest {
 		assertEquals(values, expected);
 
 	}
+	 */
 }

@@ -20,6 +20,8 @@ import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.representation.MapRepresentation;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -464,6 +466,11 @@ public class TracePartitioning<A extends AbstractState<A>>
 		for (Entry<ExecutionTrace, A> trace : this)
 			result.put(trace.getKey(), trace.getValue().withTopTypes());
 		return new TracePartitioning<>(lattice, result);
+	}
+
+	@Override
+	public Pair<TracePartitioning<A>, TracePartitioning<A>> split(SymbolicExpression expr, ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) {
+		return null;
 	}
 
 	@Override

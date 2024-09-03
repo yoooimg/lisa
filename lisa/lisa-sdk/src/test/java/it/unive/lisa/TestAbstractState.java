@@ -11,6 +11,8 @@ import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -92,5 +94,10 @@ public class TestAbstractState extends TestDomain<TestAbstractState, SymbolicExp
 			SemanticOracle oracle)
 			throws SemanticException {
 		return Satisfiability.UNKNOWN;
+	}
+
+	@Override
+	public Pair<TestAbstractState, TestAbstractState> split(SymbolicExpression expression, ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) {
+		return null;
 	}
 }

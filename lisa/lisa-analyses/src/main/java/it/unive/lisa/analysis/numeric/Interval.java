@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import it.unive.lisa.symbolic.value.operator.*;
 import org.apache.commons.lang3.tuple.Pair;
 
 import it.unive.lisa.analysis.AbstractState;
@@ -22,13 +23,6 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.Operator;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import it.unive.lisa.symbolic.value.operator.AdditionOperator;
-import it.unive.lisa.symbolic.value.operator.DivisionOperator;
-import it.unive.lisa.symbolic.value.operator.ModuloOperator;
-import it.unive.lisa.symbolic.value.operator.MultiplicationOperator;
-import it.unive.lisa.symbolic.value.operator.NegatableOperator;
-import it.unive.lisa.symbolic.value.operator.RemainderOperator;
-import it.unive.lisa.symbolic.value.operator.SubtractionOperator;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
@@ -453,7 +447,9 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		} else
 			return environment;
 
+
 		Interval starting = environment.getState(id);
+
 		if (eval.isBottom() || starting.isBottom())
 			return environment.bottom();
 
@@ -474,8 +470,9 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		else if (operator == ComparisonGt.INSTANCE)
 			if (rightIsExpr)
 				update = lowIsMinusInfinity ? null : starting.glb(lowp1_inf);
-			else
+			else {
 				update = lowIsMinusInfinity ? eval : starting.glb(inf_highm1);
+			}
 		else if (operator == ComparisonLe.INSTANCE)
 			if (rightIsExpr)
 				update = starting.glb(inf_high);
@@ -509,20 +506,15 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		return interval.compareTo(o.interval);
 	}
 
-	private Map<Pair<ValueEnvironment<Interval>, Pair<ValueExpression, ValueExpression>>, Pair<Interval, Interval>> cache = new HashMap<>(); 
+
 	public Pair<Interval, Interval> split(
 		ValueEnvironment<Interval> environment,
 		BinaryOperator operator,
 		ValueExpression left,
-		ValueExpression rigth,
+		ValueExpression right,
 		ProgramPoint src,
 		ProgramPoint dest,
 		SemanticOracle oracle) throws SemanticException {
-		
-		Pair<ValueEnvironment<Interval>, Pair<ValueExpression, ValueExpression>> key = Pair.of(environment, Pair.of(left, rigth));
-		if(cache.containsKey(key)) {
-			return cache.get(key);
-		}
 		
 		ValueEnvironment<Interval> trueValueEnvironment = environment;
 		ValueEnvironment<Interval> falseValueEnvironment = environment;
@@ -551,34 +543,24 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 			f = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
 		}
 
-		trueValueEnvironment = this.assumeBinaryExpression(trueValueEnvironment, t, left, rigth, src, dest, oracle);
-		trueInterval = unifyInterval(trueValueEnvironment);
+		trueValueEnvironment = this.assumeBinaryExpression(trueValueEnvironment, t, left, right, src, dest, oracle);
 
-		falseValueEnvironment = this.assumeBinaryExpression(falseValueEnvironment, f, left, rigth, src, dest, oracle);
-		falseInterval = unifyInterval(falseValueEnvironment);
+		trueInterval = getInterval(trueValueEnvironment, left, right);
 
-		cache.put(key, Pair.of(trueInterval, falseInterval));
+		falseValueEnvironment = this.assumeBinaryExpression(falseValueEnvironment, f, left, right, src, dest, oracle);
+
+		falseInterval = getInterval(falseValueEnvironment, left, right);
 		return Pair.of(trueInterval, falseInterval);
 	}
 
-	private Interval unifyInterval(ValueEnvironment<Interval> environment) throws SemanticException {
-		// Combina gli intervalli per tutti gli identificatori
-		Interval result = null;
-		if(!environment.isTop()) {
-			for (Identifier id : environment.getKeys()) {
-				Interval interval = environment.getState(id);
-				if(!interval.isTop()) {
-					if(result == null) {
-						result = interval;
-					} else {
-						result = result.lubAux(interval);
-					}
-				}
-			}
+	private Interval getInterval(ValueEnvironment<Interval> environment, ValueExpression left, ValueExpression right) throws SemanticException {
+		Identifier id = null;
+
+		if (left instanceof Identifier) {
+			id = (Identifier) left;
+		} else if (right instanceof Identifier) {
+			id = (Identifier) right;
 		}
-		if (result == null) {
-			return Interval.BOTTOM;
-		}
-		return result;
+		return environment.getState(id);
 	}
 }
