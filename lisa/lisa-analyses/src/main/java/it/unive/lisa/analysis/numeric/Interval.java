@@ -1,14 +1,10 @@
 package it.unive.lisa.analysis.numeric;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
+import it.unive.lisa.symbolic.value.*;
 import it.unive.lisa.symbolic.value.operator.*;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import org.apache.commons.lang3.tuple.Pair;
 
-import it.unive.lisa.analysis.AbstractState;
-import it.unive.lisa.analysis.AnalysisState;
 import it.unive.lisa.analysis.BaseLattice;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.SemanticException;
@@ -17,12 +13,6 @@ import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
-import it.unive.lisa.program.cfg.statement.BinaryExpression;
-import it.unive.lisa.symbolic.SymbolicExpression;
-import it.unive.lisa.symbolic.value.Constant;
-import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.Operator;
-import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
@@ -506,61 +496,15 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		return interval.compareTo(o.interval);
 	}
 
-
-	public Pair<Interval, Interval> split(
-		ValueEnvironment<Interval> environment,
-		BinaryOperator operator,
-		ValueExpression left,
-		ValueExpression right,
-		ProgramPoint src,
-		ProgramPoint dest,
-		SemanticOracle oracle) throws SemanticException {
-		
-		ValueEnvironment<Interval> trueValueEnvironment = environment;
-		ValueEnvironment<Interval> falseValueEnvironment = environment;
-		Interval trueInterval = null;
-		Interval falseInterval = null;
-		BinaryOperator t = null; // caso true
-		BinaryOperator f = null; // caso false
-
-		if(operator == ComparisonEq.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonEq.INSTANCE.opposite();
-		} else if(operator == ComparisonNe.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonNe.INSTANCE.opposite();
-		} else if(operator == ComparisonGt.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonGt.INSTANCE.opposite();
-		} else if(operator == ComparisonLe.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonLe.INSTANCE.opposite();
-		} else if(operator == ComparisonGe.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonGe.INSTANCE.opposite();
-		} else if(operator == ComparisonLt.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
-		}
-
-		trueValueEnvironment = this.assumeBinaryExpression(trueValueEnvironment, t, left, right, src, dest, oracle);
-
-		trueInterval = getInterval(trueValueEnvironment, left, right);
-
-		falseValueEnvironment = this.assumeBinaryExpression(falseValueEnvironment, f, left, right, src, dest, oracle);
-
-		falseInterval = getInterval(falseValueEnvironment, left, right);
-		return Pair.of(trueInterval, falseInterval);
-	}
-
-	private Interval getInterval(ValueEnvironment<Interval> environment, ValueExpression left, ValueExpression right) throws SemanticException {
-		Identifier id = null;
-
-		if (left instanceof Identifier) {
-			id = (Identifier) left;
-		} else if (right instanceof Identifier) {
-			id = (Identifier) right;
-		}
-		return environment.getState(id);
-	}
+//	@Override
+//	public Pair<Interval, Interval> split(
+//			ValueEnvironment<Interval> environment,
+//			ValueExpression expr,
+//			ProgramPoint src,
+//			ProgramPoint dest,
+//			SemanticOracle oracle) throws SemanticException {
+//		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
+//		Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> splitEnv = environment.split(expr, src, dest, oracle);
+//		return Pair.of(splitEnv.getLeft().getState((Identifier) left), splitEnv.getRight().getState((Identifier) left));
+//	}
 }

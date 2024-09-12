@@ -69,8 +69,7 @@ public interface ValueDomain<D extends ValueDomain<D>>
 	
 	default Pair<D, D> split(ValueExpression expr, 
 			ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
-		// Split operator logic implementation
-		return Pair.of(this.assume(expr, src, dest, oracle), 
+		return Pair.of(this.assume(expr, src, dest, oracle),
 				this.assume(new UnaryExpression(expr.getStaticType(), 
 						expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle));
 	}

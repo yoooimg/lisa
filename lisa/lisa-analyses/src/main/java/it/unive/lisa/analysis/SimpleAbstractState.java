@@ -718,32 +718,25 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@SuppressWarnings("unchecked")
 	@Override
 	public Pair<SimpleAbstractState<H, V, T>, SimpleAbstractState<H, V, T>> split(SymbolicExpression expr, ProgramPoint src,
-			ProgramPoint dest, SemanticOracle oracle) {
-			
-		 // split dei vari domini
-			Pair<H, H> heapStateSplit = null;
-			try {
-				heapStateSplit = heapState.split(expr, dest, dest, oracle);
-			} catch (SemanticException e) {
-				e.printStackTrace();
-			}
-			Pair<V, V> valueStateSplit = null;
-			try {
-				valueStateSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
-			} catch (SemanticException e) {
-				e.printStackTrace();
-			}
-			Pair<TypeDomain<T>, TypeDomain<T>> typeStateSplit = typeState.split(expr);
-			SimpleAbstractState<H, V, T> trueSimpleAbstractState = new SimpleAbstractState<>(
-						heapStateSplit.getLeft(), 
-		            	valueStateSplit.getLeft(), 
-		            (T) typeStateSplit.getLeft());
+			ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
 
-			SimpleAbstractState<H, V, T> falseSimpleAbstractState = new SimpleAbstractState<>(
-						heapStateSplit.getRight(), 
-		            	valueStateSplit.getRight(), 
-                    (T)	typeStateSplit.getRight());
-			
-			return Pair.of(trueSimpleAbstractState, falseSimpleAbstractState);
+			Pair<H, H> heapStateSplit = null;
+				heapStateSplit = heapState.split(expr, dest, dest, oracle);
+
+			Pair<V, V> valueStateSplit = null;
+				valueStateSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
+
+			Pair<TypeDomain<T>, TypeDomain<T>> typeStateSplit = typeState.split(expr);
+			SimpleAbstractState<H, V, T> trueCaseSimpleAbstractState = new SimpleAbstractState<>(
+					heapStateSplit.getLeft(),
+					valueStateSplit.getLeft(),
+					(T) typeStateSplit.getLeft());
+
+			SimpleAbstractState<H, V, T> falseCaseSimpleAbstractState = new SimpleAbstractState<>(
+					heapStateSplit.getRight(),
+					valueStateSplit.getRight(),
+					(T)	typeStateSplit.getRight());
+
+			return Pair.of(trueCaseSimpleAbstractState, falseCaseSimpleAbstractState);
 	}
 }

@@ -615,17 +615,16 @@ public class AnalysisState<A extends AbstractState<A>>
 	private final Map<Pair<SymbolicExpression, AbstractState<A>>, Pair<AnalysisState<A>, AnalysisState<A>>> cache = new HashMap<>();
 	public Pair<AnalysisState<A>, AnalysisState<A>> split(SymbolicExpression expression,
 			ProgramPoint src,
-			ProgramPoint des) {
+			ProgramPoint des) throws SemanticException {
 		Pair<SymbolicExpression, AbstractState<A>> key = Pair.of(expression, state);
 		if(cache.containsKey(key)) {
             return cache.get(key);
 		}
 
 		Pair<A, A> states = state.split(expression, src, des, state);
-		AnalysisState<A> trueState = new AnalysisState<>(states.getLeft(), computedExpressions, info);
-		AnalysisState<A> falseState = new AnalysisState<A>(states.getRight(), computedExpressions, info);
-		Pair<AnalysisState<A>, AnalysisState<A>> splitStates = Pair.of(trueState, falseState);	
-		cache.put(key, splitStates);	
-		return splitStates;
+		AnalysisState<A> trueCaseState = new AnalysisState<>(states.getLeft(), computedExpressions, info);
+		AnalysisState<A> falseCaseState = new AnalysisState<A>(states.getRight(), computedExpressions, info);
+		cache.put(key, Pair.of(trueCaseState, falseCaseState));
+		return Pair.of(trueCaseState, falseCaseState);
 	}
 }

@@ -30,6 +30,8 @@ import it.unive.lisa.symbolic.value.operator.ternary.TernaryOperator;
 import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Set;
 
 /**
@@ -868,4 +870,20 @@ public interface BaseInferredValue<T extends BaseInferredValue<T>> extends BaseL
 
 		return environment;
 	}
+	@Override
+	default Pair<T, T> split(
+			InferenceSystem<T> environment,
+			ValueExpression expression,
+			ProgramPoint src,
+			ProgramPoint dest,
+			SemanticOracle oracle) throws SemanticException {
+
+		ValueExpression left = (ValueExpression) ((BinaryExpression) expression).getLeft();
+		Identifier id = (Identifier) left;
+		Pair<InferenceSystem<T>, InferenceSystem<T>> environments = environment.split(expression, src, dest, oracle);
+		T trueCaseBaseInferredValue = environments.getLeft().getState(id);
+		T falseCaseBaseInferredValue = environments.getRight().getState(id);
+		return Pair.of(trueCaseBaseInferredValue, falseCaseBaseInferredValue);
+	}
+
 }

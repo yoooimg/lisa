@@ -3,10 +3,17 @@ package it.unive.lisa.analysis.nonrelational;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.lattices.FunctionalLattice;
+import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.UnaryExpression;
+import it.unive.lisa.symbolic.value.ValueExpression;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An environment for a {@link NonRelationalDomain}, that maps
@@ -128,5 +135,19 @@ public abstract class Environment<M extends Environment<M, E, T>,
 		if (isBottom())
 			return (M) this;
 		return lattice.assume((M) this, expression, src, dest, oracle);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Pair<M, M> split(
+			E expr,
+			ProgramPoint src,
+			ProgramPoint dest,
+			SemanticOracle oracle)
+			throws SemanticException {
+		M trueEnv = lattice.assume((M) this, expr, src, dest, oracle);
+		M falseEnv = lattice.assume((M) this, (E) new UnaryExpression(expr.getStaticType(),
+				expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle);
+		return Pair.of(trueEnv, falseEnv);
 	}
 }

@@ -42,7 +42,7 @@ public class FalseEdge extends Edge {
 		AnalysisState<A> result = state.bottom();
 		for (SymbolicExpression expr : exprs) {
 			AnalysisState<A> falseState = state.split(expr, getSource(), getDestination()).getRight();
-			result = result.lub(falseState.assume(expr, getSource(), getDestination()));
+			result = result.lub(falseState);
 		}
 		return result;
 	}

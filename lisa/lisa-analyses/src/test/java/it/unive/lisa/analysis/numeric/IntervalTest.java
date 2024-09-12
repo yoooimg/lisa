@@ -11,6 +11,7 @@ import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.program.type.Int32Type;
+import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Variable;
 import it.unive.lisa.symbolic.value.operator.binary.*;
@@ -675,43 +676,52 @@ public class IntervalTest {
 
 	@Test
 	public void testSplitOnInterval() throws SemanticException {
-		Variable rightVar = new Variable(Int32Type.INSTANCE, "rightVar", pp.getLocation());
-		Variable leftVar = new Variable(Int32Type.INSTANCE, "leftVar", pp.getLocation());
+		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
+		Variable c = new Variable(Int32Type.INSTANCE, "c", pp.getLocation());
+
 		for(int i = 0; i < TEST_LIMIT; i++) {
+			BinaryExpression eqExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonEq.INSTANCE, pp.getLocation());
+			BinaryExpression neExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonNe.INSTANCE, pp.getLocation());
+			BinaryExpression gtExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonGt.INSTANCE, pp.getLocation());
+			BinaryExpression ltExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonLt.INSTANCE, pp.getLocation());
+			BinaryExpression geExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonGe.INSTANCE, pp.getLocation());
+			BinaryExpression leExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonLe.INSTANCE, pp.getLocation());
+
 			Interval intervalToSplit = mk(rand.nextInt(), rand.nextInt());
+
 			int randInt = rand.nextInt();
 			Interval randInterval = mk(randInt, randInt);
-			ValueEnvironment<Interval> rightVarEnv = new ValueEnvironment<>(intervalToSplit).putState(rightVar, intervalToSplit);
-			ValueEnvironment<Interval> leftVarEnv = rightVarEnv.putState(leftVar, randInterval);
+
+			ValueEnvironment<Interval> xEnvironment = new ValueEnvironment<>(intervalToSplit).putState(x, intervalToSplit);
+			ValueEnvironment<Interval> cEnvironment = xEnvironment.putState(c, randInterval);
 
 			MathNumber constantNumber = randInterval.interval.getHigh();
 			MathNumber identifierLowNumber = intervalToSplit.interval.getLow();
 			MathNumber identifierHighNumber = intervalToSplit.interval.getHigh();
 
-			Pair<Interval, Interval> actualEqualCase = intervalToSplit.split(leftVarEnv, ComparisonEq.INSTANCE, rightVar, leftVar, pp, pp, oracle);
-			Pair<Interval, Interval> actualNotEqualCase = intervalToSplit.split(leftVarEnv, ComparisonNe.INSTANCE, rightVar, leftVar, pp, pp, oracle);
-			Pair<Interval, Interval> actualGreaterThanCase = intervalToSplit.split(leftVarEnv, ComparisonGt.INSTANCE, rightVar, leftVar, pp, pp, oracle);
-			Pair<Interval, Interval> actualLessThanCase = intervalToSplit.split(leftVarEnv, ComparisonLt.INSTANCE, rightVar, leftVar, pp, pp, oracle);
-			Pair<Interval, Interval> actualGreaterOrEqualCase = intervalToSplit.split(leftVarEnv, ComparisonGe.INSTANCE, rightVar, leftVar, pp, pp, oracle);
-			Pair<Interval, Interval> actualLessOrEqualCase = intervalToSplit.split(leftVarEnv, ComparisonLe.INSTANCE, rightVar, leftVar, pp, pp, oracle);
-
-			Pair<Interval, Interval> expEqualCase = Pair.of(randInterval, intervalToSplit);
-			Pair<Interval, Interval> expNotEqualCase = Pair.of(intervalToSplit, randInterval);
+			Pair<Interval, Interval> expEqualCase = null;
+			Pair<Interval, Interval> expNotEqualCase = null;
 			Pair<Interval, Interval> expGreaterThanCase = null;
 			Pair<Interval, Interval> expLessThanCase = null;
 			Pair<Interval, Interval> expGreaterOrEqualCase = null;
 			Pair<Interval, Interval> expLessOrEqualCase = null;
 			if(constantNumber.lt(identifierLowNumber)) {
+				expEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
+				expNotEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterThanCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expLessThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expGreaterOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expLessOrEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
 			} else if(constantNumber.gt(identifierHighNumber)) {
+				expEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
+				expNotEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expLessThanCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterOrEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expLessOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 			} else if(constantNumber.equals(identifierHighNumber)) {
+				expEqualCase = Pair.of(randInterval, new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()));
+				expNotEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()), randInterval);
 				expGreaterThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expLessOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterOrEqualCase = Pair.of(new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()),
@@ -719,6 +729,8 @@ public class IntervalTest {
 				expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
 						new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()));
 			} else if(constantNumber.equals(identifierLowNumber)) {
+				expEqualCase = Pair.of(randInterval, new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()));
+				expNotEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()), randInterval);
 				expLessThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expGreaterOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
@@ -726,6 +738,8 @@ public class IntervalTest {
 				expLessOrEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()),
 						new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
 			} else {
+				expEqualCase = Pair.of(randInterval, intervalToSplit);
+				expNotEqualCase = Pair.of(intervalToSplit, randInterval);
 				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
 						new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()));
 				expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
@@ -736,15 +750,40 @@ public class IntervalTest {
 						new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
 			}
 
-			System.out.println("------------------------------------------ Iter: " + i + " --------------------------------------------");
-			System.out.println("Interval to split: " + intervalToSplit + ", constant: " + randInterval);
-			System.out.println("Operator (==), Expected: " + expEqualCase + ", Actual: " + actualEqualCase);
-			System.out.println("Operator (!=), Expected: " + expNotEqualCase + ", Actual: " + actualNotEqualCase);
-			System.out.println("Operator  (>), Expected: " + expGreaterThanCase + ", Actual: " + actualGreaterThanCase);
-			System.out.println("Operator  (<), Expected: " + expLessThanCase + ", Actual: " + actualLessThanCase);
-			System.out.println("Operator (>=), Expected: " + expGreaterOrEqualCase + ", Actual: " + actualGreaterOrEqualCase);
-			System.out.println("Operator (<=), Expected: " + expLessOrEqualCase + ", Actual: " + actualLessOrEqualCase);
+			System.out.println("------------------------------------------ inizio iter: " + i + " -----------------------------");
+			System.out.println("x environment: " + xEnvironment);
+			System.out.println("c environment: " + cEnvironment);
 			System.out.println("-----------------------------------------------------------------------------------------------");
+			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("expression: " + eqExpr);
+			Pair<Interval, Interval> actualEqualCase = intervalToSplit.split(cEnvironment, eqExpr, pp, pp, oracle);
+			System.out.println("Operator (==), Expected: " + expEqualCase + ", Actual: " + actualEqualCase);
+			System.out.println("-----------------------------------------------------------------------------------------------");
+			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("expression: " + neExpr);
+			Pair<Interval, Interval> actualNotEqualCase = intervalToSplit.split(cEnvironment, neExpr, pp, pp, oracle);
+			System.out.println("Operator (!=), Expected: " + expNotEqualCase + ", Actual: " + actualNotEqualCase);
+			System.out.println("-----------------------------------------------------------------------------------------------");
+			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("expression: " + gtExpr);
+			Pair<Interval, Interval> actualGreaterThanCase = intervalToSplit.split(cEnvironment, gtExpr, pp, pp, oracle);
+			System.out.println("Operator  (>), Expected: " + expGreaterThanCase + ", Actual: " + actualGreaterThanCase);
+			System.out.println("-----------------------------------------------------------------------------------------------");
+			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("expression: " + ltExpr);
+			Pair<Interval, Interval> actualLessThanCase = intervalToSplit.split(cEnvironment, ltExpr, pp, pp, oracle);
+			System.out.println("Operator  (<), Expected: " + expLessThanCase + ", Actual: " + actualLessThanCase);
+			System.out.println("-----------------------------------------------------------------------------------------------");
+			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("expression: " + geExpr);
+			Pair<Interval, Interval> actualGreaterOrEqualCase = intervalToSplit.split(cEnvironment, geExpr, pp, pp, oracle);
+			System.out.println("Operator (>=), Expected: " + expGreaterOrEqualCase + ", Actual: " + actualGreaterOrEqualCase);
+			System.out.println("-----------------------------------------------------------------------------------------------");
+			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("expression: " + leExpr);
+			Pair<Interval, Interval> actualLessOrEqualCase = intervalToSplit.split(cEnvironment, leExpr, pp, pp, oracle);
+			System.out.println("Operator (<=), Expected: " + expLessOrEqualCase + ", Actual: " + actualLessOrEqualCase);
+			System.out.println("---------------------------------------------- fine iter: " + i + "----------------------------");
 
 			assertEquals("The values don't match for equal operator: ", expEqualCase, actualEqualCase);
 			assertEquals("The values don't match for not equal operator: ", expNotEqualCase, actualNotEqualCase);

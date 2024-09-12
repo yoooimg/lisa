@@ -42,7 +42,7 @@ public class TrueEdge extends Edge {
 		AnalysisState<A> result = state.bottom();				
 		for (SymbolicExpression expr : exprs) {
 			AnalysisState<A> trueState = state.split(expr, getSource(), getDestination()).getLeft();
-			result = result.lub(trueState.assume(expr, getSource(), getDestination()));
+			result = result.lub(trueState);
 		}
 		return result;
 	}

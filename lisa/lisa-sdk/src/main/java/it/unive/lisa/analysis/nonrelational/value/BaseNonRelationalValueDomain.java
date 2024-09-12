@@ -12,16 +12,7 @@ import it.unive.lisa.symbolic.heap.AccessChild;
 import it.unive.lisa.symbolic.heap.HeapDereference;
 import it.unive.lisa.symbolic.heap.HeapReference;
 import it.unive.lisa.symbolic.heap.MemoryAllocation;
-import it.unive.lisa.symbolic.value.BinaryExpression;
-import it.unive.lisa.symbolic.value.Constant;
-import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.NullConstant;
-import it.unive.lisa.symbolic.value.PushAny;
-import it.unive.lisa.symbolic.value.PushInv;
-import it.unive.lisa.symbolic.value.Skip;
-import it.unive.lisa.symbolic.value.TernaryExpression;
-import it.unive.lisa.symbolic.value.UnaryExpression;
-import it.unive.lisa.symbolic.value.ValueExpression;
+import it.unive.lisa.symbolic.value.*;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.LogicalAnd;
 import it.unive.lisa.symbolic.value.operator.binary.LogicalOr;
@@ -31,6 +22,8 @@ import it.unive.lisa.symbolic.value.operator.ternary.TernaryOperator;
 import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Set;
 
 /**
@@ -775,6 +768,7 @@ public interface BaseNonRelationalValueDomain<T extends BaseNonRelationalValueDo
 		Satisfiability sat = satisfies(expression, environment, src, oracle);
 		if (sat == Satisfiability.NOT_SATISFIED)
 			return environment.bottom();
+
 		if (sat == Satisfiability.SATISFIED)
 			return environment;
 
@@ -788,7 +782,6 @@ public interface BaseNonRelationalValueDomain<T extends BaseNonRelationalValueDo
 				if (rewritten != unary)
 					return assume(environment, rewritten, src, dest, oracle);
 			}
-
 			return assumeUnaryExpression(
 					environment,
 					unary.getOperator(),
@@ -810,6 +803,7 @@ public interface BaseNonRelationalValueDomain<T extends BaseNonRelationalValueDo
 			else
 				return assumeBinaryExpression(environment, binary.getOperator(), (ValueExpression) binary.getLeft(),
 						(ValueExpression) binary.getRight(), src, dest, oracle);
+
 		}
 
 		if (expression instanceof TernaryExpression) {
@@ -820,6 +814,21 @@ public interface BaseNonRelationalValueDomain<T extends BaseNonRelationalValueDo
 		}
 
 		return environment;
+	}
+
+	@Override
+    default Pair<T, T> split(
+            ValueEnvironment<T> environment,
+            ValueExpression expr,
+            ProgramPoint src,
+            ProgramPoint dest,
+            SemanticOracle oracle) throws SemanticException {
+		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
+		Identifier id = (Identifier) left;
+		Pair<ValueEnvironment<T>, ValueEnvironment<T>> environments = environment.split(expr, src, dest, oracle);
+		T trueCaseNonRelationalValueDomain = environments.getLeft().getState(id);
+		T falseCaseNonRelationalValueDomain = environments.getRight().getState(id);
+		return Pair.of(trueCaseNonRelationalValueDomain, falseCaseNonRelationalValueDomain);
 	}
 
 	/**

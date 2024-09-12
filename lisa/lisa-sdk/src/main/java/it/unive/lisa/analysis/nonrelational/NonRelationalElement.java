@@ -9,6 +9,7 @@ import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * A non-relational domain, that is able to compute the value of a
@@ -130,4 +131,12 @@ public interface NonRelationalElement<T extends NonRelationalElement<T, E, F>,
 			Identifier id) {
 		return top();
 	}
+
+	Pair<T, T> split(
+			F environment,
+			E expression,
+			ProgramPoint src,
+			ProgramPoint dest,
+			SemanticOracle oracle)
+			throws SemanticException;
 }
