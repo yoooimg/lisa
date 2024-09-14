@@ -880,10 +880,10 @@ public interface BaseInferredValue<T extends BaseInferredValue<T>> extends BaseL
 
 		ValueExpression left = (ValueExpression) ((BinaryExpression) expression).getLeft();
 		Identifier id = (Identifier) left;
-		Pair<InferenceSystem<T>, InferenceSystem<T>> environments = environment.split(expression, src, dest, oracle);
+		Pair<InferenceSystem<T>, InferenceSystem<T>> environments = Pair.of(this.assume(environment, expression, src, dest, oracle), this.assume(environment, new UnaryExpression(expression.getStaticType(),
+				expression, LogicalNegation.INSTANCE, expression.getCodeLocation()), src, dest, oracle));
 		T trueCaseBaseInferredValue = environments.getLeft().getState(id);
 		T falseCaseBaseInferredValue = environments.getRight().getState(id);
 		return Pair.of(trueCaseBaseInferredValue, falseCaseBaseInferredValue);
 	}
-
 }

@@ -10,8 +10,13 @@ import it.unive.lisa.analysis.lattices.SetLattice;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.UnaryExpression;
+import it.unive.lisa.symbolic.value.ValueExpression;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -344,6 +349,19 @@ public abstract class NonRedundantPowerset<C extends NonRedundantPowerset<C, T, 
 			newElements.add(elem.assume(expression, src, dest, oracle));
 		}
 		return mk(newElements).removeRedundancy();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Pair<C, C> split(E expr, ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
+		Set<T> trueCasenewElements = new TreeSet<>();
+		Set<T> falseCasenewElements = new TreeSet<>();
+		Pair<Set<T>, Set<T>> pairOfnewElements = Pair.of(trueCasenewElements, falseCasenewElements);
+		for (T elem : this.elements) {
+			pairOfnewElements.getLeft().add(elem.assume(expr, src, dest, oracle));
+			pairOfnewElements.getRight().add(elem.assume((E) new UnaryExpression(expr.getStaticType(), expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle));
+		}
+        return Pair.of(mk(pairOfnewElements.getLeft()).removeRedundancy(), mk(pairOfnewElements.getRight()).removeRedundancy());
 	}
 
 	@Override

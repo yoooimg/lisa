@@ -496,15 +496,46 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		return interval.compareTo(o.interval);
 	}
 
-//	@Override
-//	public Pair<Interval, Interval> split(
-//			ValueEnvironment<Interval> environment,
-//			ValueExpression expr,
-//			ProgramPoint src,
-//			ProgramPoint dest,
-//			SemanticOracle oracle) throws SemanticException {
-//		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
-//		Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> splitEnv = environment.split(expr, src, dest, oracle);
-//		return Pair.of(splitEnv.getLeft().getState((Identifier) left), splitEnv.getRight().getState((Identifier) left));
-//	}
+	public Pair<Interval, Interval> split(
+			ValueEnvironment<Interval> environment,
+			BinaryOperator operator,
+			ValueExpression left,
+			ValueExpression right,
+			ProgramPoint src,
+			ProgramPoint dest,
+			SemanticOracle oracle) throws SemanticException {
+
+		ValueEnvironment<Interval> trueCaseValueEnvironment = environment;
+		ValueEnvironment<Interval> falseCaseValueEnvironment = environment;
+
+		BinaryOperator t = null;
+		BinaryOperator f = null;
+		if(operator == ComparisonEq.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonEq.INSTANCE.opposite();
+		} else if(operator == ComparisonNe.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonNe.INSTANCE.opposite();
+		} else if(operator == ComparisonGt.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonGt.INSTANCE.opposite();
+		} else if(operator == ComparisonLe.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonLe.INSTANCE.opposite();
+		} else if(operator == ComparisonGe.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonGe.INSTANCE.opposite();
+		} else if(operator == ComparisonLt.INSTANCE) {
+			t = operator;
+			f = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
+		}
+
+		trueCaseValueEnvironment = Interval.ZERO.assumeBinaryExpression(trueCaseValueEnvironment, t, left, right, src, dest, oracle);
+		Interval trueCaseInterval = trueCaseValueEnvironment.getState((Identifier) left);
+
+		falseCaseValueEnvironment = Interval.ZERO.assumeBinaryExpression(falseCaseValueEnvironment, f, left, right, src, dest, oracle);
+		Interval falseCaseInterval = falseCaseValueEnvironment.getState((Identifier) right);
+
+		return Pair.of(trueCaseInterval, falseCaseInterval);
+	}
 }

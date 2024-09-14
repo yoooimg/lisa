@@ -825,7 +825,8 @@ public interface BaseNonRelationalValueDomain<T extends BaseNonRelationalValueDo
             SemanticOracle oracle) throws SemanticException {
 		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
 		Identifier id = (Identifier) left;
-		Pair<ValueEnvironment<T>, ValueEnvironment<T>> environments = environment.split(expr, src, dest, oracle);
+		Pair<ValueEnvironment<T>, ValueEnvironment<T>> environments = Pair.of(this.assume(environment, expr, src, dest, oracle), this.assume(environment, new UnaryExpression(expr.getStaticType(),
+				expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle));
 		T trueCaseNonRelationalValueDomain = environments.getLeft().getState(id);
 		T falseCaseNonRelationalValueDomain = environments.getRight().getState(id);
 		return Pair.of(trueCaseNonRelationalValueDomain, falseCaseNonRelationalValueDomain);

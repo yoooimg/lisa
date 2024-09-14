@@ -1,10 +1,17 @@
 package it.unive.lisa.analysis.nonrelational.value;
 
+import it.unive.lisa.analysis.SemanticException;
+import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.lattices.FunctionalLattice;
 import it.unive.lisa.analysis.nonrelational.Environment;
 import it.unive.lisa.analysis.value.ValueDomain;
+import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Map;
 
 /**
@@ -69,5 +76,17 @@ public class ValueEnvironment<T extends NonRelationalValueDomain<T>>
 	@Override
 	public ValueEnvironment<T> bottom() {
 		return isBottom() ? this : new ValueEnvironment<>(lattice.bottom(), null);
+	}
+
+	@Override
+	public Pair<ValueEnvironment<T>, ValueEnvironment<T>> split(
+			ValueExpression expr,
+			ProgramPoint src,
+			ProgramPoint dest,
+			SemanticOracle oracle)
+			throws SemanticException {
+		return Pair.of(this.assume(expr, src, dest, oracle), this.assume(
+				new UnaryExpression(expr.getStaticType(), expr, LogicalNegation.INSTANCE, expr.getCodeLocation()),
+				src, dest, oracle));
 	}
 }
