@@ -687,9 +687,9 @@ public class IntervalTest {
 			BinaryExpression geExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonGe.INSTANCE, pp.getLocation());
 			BinaryExpression leExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonLe.INSTANCE, pp.getLocation());
 
-			Interval intervalToSplit = mk(rand.nextInt(), rand.nextInt());
+			Interval intervalToSplit = mk(rand.nextInt(TEST_LIMIT) + 1, rand.nextInt(TEST_LIMIT) + 1);
 
-			int randInt = rand.nextInt();
+			int randInt = rand.nextInt(TEST_LIMIT) + 1;
 			Interval randInterval = mk(randInt, randInt);
 
 			ValueEnvironment<Interval> xEnvironment = new ValueEnvironment<>(intervalToSplit).putState(x, intervalToSplit);

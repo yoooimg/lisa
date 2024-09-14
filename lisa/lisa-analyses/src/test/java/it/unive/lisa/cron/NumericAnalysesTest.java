@@ -58,6 +58,20 @@ public class NumericAnalysesTest extends AnalysisTestExecutor {
 	}
 
 	@Test
+	public void testSplit() {
+		CronConfiguration conf = new CronConfiguration();
+		conf.serializeResults = true;
+		conf.abstractState = DefaultConfiguration.simpleState(
+				DefaultConfiguration.defaultHeapDomain(),
+				new ValueEnvironment<>(new Interval()),
+				DefaultConfiguration.defaultTypeDomain());
+		conf.testDir = "numeric";
+		conf.testSubDir = "split";
+		conf.programFile = "numeric.imp";
+		perform(conf);
+	}
+
+	@Test
 	public void testIntegerConstantPropagation() {
 		CronConfiguration conf = new CronConfiguration();
 		conf.serializeResults = true;

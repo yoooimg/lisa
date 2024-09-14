@@ -35,6 +35,10 @@ public class BaseNonRelationalValueDomainTest {
 								"Default implementation of " + mtd.getName()
 										+ " did not return an unchanged environment",
 								params[envPos.get()], ret);
+					else if (mtd.getName().startsWith("split"))
+						assertSame("Default implementation of " + mtd.getName()
+										+ " did not return an unchanged environment",
+								params[envPos.get()], ret);
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -48,6 +52,7 @@ public class BaseNonRelationalValueDomainTest {
 				|| mtd.getName().equals("tracksIdentifiers")
 				|| mtd.getName().equals("satisfies")
 				|| mtd.getName().equals("assume")
+				|| mtd.getName().equals("split")
 				|| mtd.getName().equals("eval")
 				|| mtd.getName().equals("toString"))
 			return true;
