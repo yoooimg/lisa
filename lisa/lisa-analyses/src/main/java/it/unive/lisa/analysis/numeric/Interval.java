@@ -1,8 +1,5 @@
 package it.unive.lisa.analysis.numeric;
 
-import it.unive.lisa.symbolic.value.*;
-import it.unive.lisa.symbolic.value.operator.*;
-import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import org.apache.commons.lang3.tuple.Pair;
 
 import it.unive.lisa.analysis.BaseLattice;
@@ -13,6 +10,16 @@ import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.analysis.nonrelational.value.BaseNonRelationalValueDomain;
 import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
+import it.unive.lisa.symbolic.value.BinaryExpression;
+import it.unive.lisa.symbolic.value.Constant;
+import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.ValueExpression;
+import it.unive.lisa.symbolic.value.operator.AdditionOperator;
+import it.unive.lisa.symbolic.value.operator.DivisionOperator;
+import it.unive.lisa.symbolic.value.operator.ModuloOperator;
+import it.unive.lisa.symbolic.value.operator.MultiplicationOperator;
+import it.unive.lisa.symbolic.value.operator.RemainderOperator;
+import it.unive.lisa.symbolic.value.operator.SubtractionOperator;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
@@ -268,7 +275,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 	@Override
 	public Interval lubAux(
 			Interval other)
-			throws SemanticException {
+					throws SemanticException {
 		MathNumber newLow = interval.getLow().min(other.interval.getLow());
 		MathNumber newHigh = interval.getHigh().max(other.interval.getHigh());
 		return newLow.isMinusInfinity() && newHigh.isPlusInfinity() ? top() : new Interval(newLow, newHigh);
@@ -288,7 +295,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 	@Override
 	public Interval wideningAux(
 			Interval other)
-			throws SemanticException {
+					throws SemanticException {
 		MathNumber newLow, newHigh;
 		if (other.interval.getHigh().compareTo(interval.getHigh()) > 0)
 			newHigh = MathNumber.PLUS_INFINITY;
@@ -306,7 +313,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 	@Override
 	public Interval narrowingAux(
 			Interval other)
-			throws SemanticException {
+					throws SemanticException {
 		MathNumber newLow, newHigh;
 		newHigh = interval.getHigh().isInfinite() ? other.interval.getHigh() : interval.getHigh();
 		newLow = interval.getLow().isInfinite() ? other.interval.getLow() : interval.getLow();
@@ -316,7 +323,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 	@Override
 	public boolean lessOrEqualAux(
 			Interval other)
-			throws SemanticException {
+					throws SemanticException {
 		return other.interval.includes(interval);
 	}
 
@@ -422,7 +429,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		Identifier id;
 		Interval eval;
 		boolean rightIsExpr;
@@ -481,7 +488,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		else
 			return environment.putState(id, update);
 	}
-	
+
 	@Override
 	public int compareTo(
 			Interval o) {
@@ -496,18 +503,19 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		return interval.compareTo(o.interval);
 	}
 
-	public Pair<Interval, Interval> split(
-			ValueEnvironment<Interval> environment,
-			BinaryOperator operator,
-			ValueExpression left,
-			ValueExpression right,
-			ProgramPoint src,
-			ProgramPoint dest,
-			SemanticOracle oracle) throws SemanticException {
+	@Override
+	public Pair<Interval, Interval> split(ValueEnvironment<Interval> environment, ValueExpression expr,
+			ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
 
+		if (!(expr instanceof BinaryExpression))
+			throw new SemanticException("Interval domain can split just binary expressions: " + expr);
+				
+		BinaryOperator operator = ((BinaryExpression) expr).getOperator();
+		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
+		ValueExpression right = (ValueExpression) ((BinaryExpression) expr).getRight();
 		ValueEnvironment<Interval> trueCaseValueEnvironment = environment;
 		ValueEnvironment<Interval> falseCaseValueEnvironment = environment;
-
+		
 		BinaryOperator t = null;
 		BinaryOperator f = null;
 		if(operator == ComparisonEq.INSTANCE) {

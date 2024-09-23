@@ -23,6 +23,7 @@ public interface NonRelationalValueDomain<T extends NonRelationalValueDomain<T>>
 		extends
 		NonRelationalDomain<T, ValueExpression, ValueEnvironment<T>> {
 
+	@Override
 	Pair<T, T> split(
 			ValueEnvironment<T> environment,
 			ValueExpression expr,
