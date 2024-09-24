@@ -542,7 +542,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		Interval trueCaseInterval = trueCaseValueEnvironment.getState((Identifier) left);
 
 		falseCaseValueEnvironment = Interval.ZERO.assumeBinaryExpression(falseCaseValueEnvironment, f, left, right, src, dest, oracle);
-		Interval falseCaseInterval = falseCaseValueEnvironment.getState((Identifier) right);
+		Interval falseCaseInterval = falseCaseValueEnvironment.getState((Identifier) left);
 
 		return Pair.of(trueCaseInterval, falseCaseInterval);
 	}
