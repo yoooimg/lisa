@@ -91,9 +91,5 @@ public class ValueEnvironment<T extends NonRelationalValueDomain<T>>
 		ValueEnvironment<T> falseValueEnv = domains.getRight().assume(this, new UnaryExpression(expr.getStaticType(),
 				expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle);
 		return Pair.of(trueValueEnv, falseValueEnv);
-		
-//		return Pair.of(this.assume(expr, src, dest, oracle), this.assume(
-//				new UnaryExpression(expr.getStaticType(), expr, LogicalNegation.INSTANCE, expr.getCodeLocation()),
-//				src, dest, oracle));
 	}
 }
