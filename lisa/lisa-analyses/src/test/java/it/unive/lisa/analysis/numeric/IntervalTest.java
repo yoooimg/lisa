@@ -699,29 +699,23 @@ public class IntervalTest {
 			MathNumber identifierLowNumber = intervalToSplit.interval.getLow();
 			MathNumber identifierHighNumber = intervalToSplit.interval.getHigh();
 
-			Pair<Interval, Interval> expEqualCase = null;
-			Pair<Interval, Interval> expNotEqualCase = null;
+			Pair<Interval, Interval> expEqualCase = Pair.of(randInterval, intervalToSplit);
+			Pair<Interval, Interval> expNotEqualCase = Pair.of(intervalToSplit, randInterval);
 			Pair<Interval, Interval> expGreaterThanCase = null;
 			Pair<Interval, Interval> expLessThanCase = null;
 			Pair<Interval, Interval> expGreaterOrEqualCase = null;
 			Pair<Interval, Interval> expLessOrEqualCase = null;
 			if(constantNumber.lt(identifierLowNumber)) {
-				expEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expNotEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterThanCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expLessThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expGreaterOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expLessOrEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
 			} else if(constantNumber.gt(identifierHighNumber)) {
-				expEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expNotEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expLessThanCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterOrEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expLessOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 			} else if(constantNumber.equals(identifierHighNumber)) {
-				expEqualCase = Pair.of(randInterval, new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()));
-				expNotEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()), randInterval);
 				expGreaterThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expLessOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterOrEqualCase = Pair.of(new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()),
@@ -729,8 +723,6 @@ public class IntervalTest {
 				expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
 						new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()));
 			} else if(constantNumber.equals(identifierLowNumber)) {
-				expEqualCase = Pair.of(randInterval, new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()));
-				expNotEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), intervalToSplit.interval.getHigh()), randInterval);
 				expLessThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
 				expGreaterOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
 				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
@@ -738,8 +730,6 @@ public class IntervalTest {
 				expLessOrEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()),
 						new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
 			} else {
-				expEqualCase = Pair.of(randInterval, intervalToSplit);
-				expNotEqualCase = Pair.of(intervalToSplit, randInterval);
 				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
 						new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()));
 				expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
