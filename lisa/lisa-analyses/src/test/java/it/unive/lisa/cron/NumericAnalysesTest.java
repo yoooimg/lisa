@@ -67,7 +67,7 @@ public class NumericAnalysesTest extends AnalysisTestExecutor {
 				DefaultConfiguration.defaultTypeDomain());
 		conf.testDir = "numeric";
 		conf.testSubDir = "split";
-		conf.programFile = "program.imp";
+		conf.programFile = "split.imp";
 		perform(conf);
 	}
 
