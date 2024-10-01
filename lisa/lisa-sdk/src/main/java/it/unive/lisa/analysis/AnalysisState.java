@@ -612,19 +612,19 @@ public class AnalysisState<A extends AbstractState<A>>
 		return new AnalysisState<>(state.withTopTypes(), computedExpressions, info);
 	}
 	
-	private final Map<Pair<SymbolicExpression, AbstractState<A>>, Pair<AnalysisState<A>, AnalysisState<A>>> cache = new HashMap<>();
 	public Pair<AnalysisState<A>, AnalysisState<A>> split(SymbolicExpression expression,
 			ProgramPoint src,
 			ProgramPoint des) throws SemanticException {
-		Pair<SymbolicExpression, AbstractState<A>> key = Pair.of(expression, state);
-		if(cache.containsKey(key)) {
-            return cache.get(key);
+		Cache.InnerKey key = Cache.createKey(expression);
+		if(Cache.containsKeyAndState(key, state)) {
+			System.out.println("[Cache]: current state already exist for key");
+			return Cache.getAnalysisStates(key, state);
 		}
-
 		Pair<A, A> states = state.split(expression, src, des, state);
+		System.out.println("[Split]: done!" );
 		AnalysisState<A> trueCaseState = new AnalysisState<>(states.getLeft(), computedExpressions, info);
-		AnalysisState<A> falseCaseState = new AnalysisState<A>(states.getRight(), computedExpressions, info);
-		cache.put(key, Pair.of(trueCaseState, falseCaseState));
+		AnalysisState<A> falseCaseState = new AnalysisState<>(states.getRight(), computedExpressions, info);
+		Cache.putAnalysisStates(key, state, Pair.of(trueCaseState,falseCaseState));
 		return Pair.of(trueCaseState, falseCaseState);
 	}
 }
