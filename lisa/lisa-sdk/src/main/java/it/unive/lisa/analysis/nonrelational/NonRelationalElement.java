@@ -132,7 +132,7 @@ public interface NonRelationalElement<T extends NonRelationalElement<T, E, F>,
 		return top();
 	}
 
-	Pair<T, T> split(
+	Pair<F, F> split(
 			F environment,
 			E expression,
 			ProgramPoint src,

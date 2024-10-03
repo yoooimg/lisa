@@ -2,8 +2,6 @@ package it.unive.lisa.analysis.nonrelational.value;
 
 import java.util.Map;
 
-import it.unive.lisa.symbolic.value.UnaryExpression;
-import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import org.apache.commons.lang3.tuple.Pair;
 
 import it.unive.lisa.analysis.SemanticException;
@@ -86,10 +84,6 @@ public class ValueEnvironment<T extends NonRelationalValueDomain<T>>
 			ProgramPoint dest,
 			SemanticOracle oracle)
 			throws SemanticException {
-		Pair<T, T> domains = this.lattice.split(this, expr, src, dest, oracle);
-		ValueEnvironment<T> trueValueEnv = domains.getLeft().assume(this, expr, src, dest, oracle);
-		ValueEnvironment<T> falseValueEnv = domains.getRight().assume(this, new UnaryExpression(expr.getStaticType(),
-				expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle);
-		return Pair.of(trueValueEnv, falseValueEnv);
+		return this.lattice.split(this, expr, src, dest, oracle);
 	}
 }

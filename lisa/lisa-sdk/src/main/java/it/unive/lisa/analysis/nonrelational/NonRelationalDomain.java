@@ -1,15 +1,13 @@
 package it.unive.lisa.analysis.nonrelational;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.lattices.FunctionalLattice;
-import it.unive.lisa.analysis.nonrelational.value.ValueEnvironment;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
-import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.ValueExpression;
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * A {@link NonRelationalElement} that models the standard concept of
@@ -55,18 +53,14 @@ public interface NonRelationalDomain<T extends NonRelationalDomain<T, E, F>,
 			SemanticOracle oracle)
 			throws SemanticException;
 
-	default Pair<T, T> split(
+	@Override
+	default Pair<F, F> split(
 			F environment,
 			E expression,
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
 			throws SemanticException {
-		ValueExpression left = (ValueExpression) ((BinaryExpression) expression).getLeft();
-		Pair<F, F> environments = environment.split(expression, src, dest, oracle);
-		Identifier id = (Identifier) left;
-		T trueCaseNonRelationalDomain = environments.getLeft().getState(id);
-		T falseCaseNonRelationalDomain = environments.getRight().getState(id);
-		return Pair.of(trueCaseNonRelationalDomain, falseCaseNonRelationalDomain);
+		return environment.split(expression, src, dest, oracle);
 	}
 }

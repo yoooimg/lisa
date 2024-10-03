@@ -1,5 +1,9 @@
 package it.unive.lisa.analysis.nonrelational.inference;
 
+import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import it.unive.lisa.analysis.BaseLattice;
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
@@ -30,9 +34,6 @@ import it.unive.lisa.symbolic.value.operator.ternary.TernaryOperator;
 import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 import it.unive.lisa.symbolic.value.operator.unary.UnaryOperator;
 import it.unive.lisa.type.Type;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.Set;
 
 /**
  * Base implementation for {@link InferredValue}s. This class extends
@@ -870,20 +871,15 @@ public interface BaseInferredValue<T extends BaseInferredValue<T>> extends BaseL
 
 		return environment;
 	}
+	
 	@Override
-	default Pair<T, T> split(
+	default Pair<InferenceSystem<T> , InferenceSystem<T> > split(
 			InferenceSystem<T> environment,
 			ValueExpression expression,
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle) throws SemanticException {
-
-		ValueExpression left = (ValueExpression) ((BinaryExpression) expression).getLeft();
-		Identifier id = (Identifier) left;
-		Pair<InferenceSystem<T>, InferenceSystem<T>> environments = Pair.of(this.assume(environment, expression, src, dest, oracle), this.assume(environment, new UnaryExpression(expression.getStaticType(),
+		return Pair.of(this.assume(environment, expression, src, dest, oracle), this.assume(environment, new UnaryExpression(expression.getStaticType(),
 				expression, LogicalNegation.INSTANCE, expression.getCodeLocation()), src, dest, oracle));
-		T trueCaseBaseInferredValue = environments.getLeft().getState(id);
-		T falseCaseBaseInferredValue = environments.getRight().getState(id);
-		return Pair.of(trueCaseBaseInferredValue, falseCaseBaseInferredValue);
 	}
 }

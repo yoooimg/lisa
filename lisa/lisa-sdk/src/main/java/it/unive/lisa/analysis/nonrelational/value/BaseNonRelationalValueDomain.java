@@ -817,19 +817,15 @@ public interface BaseNonRelationalValueDomain<T extends BaseNonRelationalValueDo
 	}
 
 	@Override
-    default Pair<T, T> split(
+    default Pair<ValueEnvironment<T>, ValueEnvironment<T>> split(
             ValueEnvironment<T> environment,
             ValueExpression expr,
             ProgramPoint src,
             ProgramPoint dest,
             SemanticOracle oracle) throws SemanticException {
-		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
-		Identifier id = (Identifier) left;
-		Pair<ValueEnvironment<T>, ValueEnvironment<T>> environments = Pair.of(this.assume(environment, expr, src, dest, oracle), this.assume(environment, new UnaryExpression(expr.getStaticType(),
+		return Pair.of(this.assume(environment, expr, src, dest, oracle), this.assume(environment, new UnaryExpression(expr.getStaticType(),
 				expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle));
-		T trueCaseNonRelationalValueDomain = environments.getLeft().getState(id);
-		T falseCaseNonRelationalValueDomain = environments.getRight().getState(id);
-		return Pair.of(trueCaseNonRelationalValueDomain, falseCaseNonRelationalValueDomain);
+		
 	}
 
 	/**
