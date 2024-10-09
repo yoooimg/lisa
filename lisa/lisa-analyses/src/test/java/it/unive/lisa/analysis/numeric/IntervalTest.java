@@ -678,8 +678,7 @@ public class IntervalTest {
 	public void testSplitOnInterval() throws SemanticException {
 		Variable x = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
 		Variable c = new Variable(Int32Type.INSTANCE, "c", pp.getLocation());
-
-		for(int i = 0; i < TEST_LIMIT; i++) {
+		for (int i = 0; i < TEST_LIMIT; i++) {
 			BinaryExpression eqExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonEq.INSTANCE, pp.getLocation());
 			BinaryExpression neExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonNe.INSTANCE, pp.getLocation());
 			BinaryExpression gtExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonGt.INSTANCE, pp.getLocation());
@@ -687,100 +686,130 @@ public class IntervalTest {
 			BinaryExpression geExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonGe.INSTANCE, pp.getLocation());
 			BinaryExpression leExpr = new BinaryExpression(Int32Type.INSTANCE, x, c, ComparisonLe.INSTANCE, pp.getLocation());
 
-			Interval intervalToSplit = mk(rand.nextInt(TEST_LIMIT) + 1, rand.nextInt(TEST_LIMIT) + 1);
+			Interval xInterval = mk(rand.nextInt(3) + 1, rand.nextInt(3) + 1);
+			int randInt = rand.nextInt(3) + 1;
+			Interval cInterval = mk(randInt, randInt);
+			ValueEnvironment<Interval> environment = new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval);
 
-			int randInt = rand.nextInt(TEST_LIMIT) + 1;
-			Interval randInterval = mk(randInt, randInt);
+			MathNumber constantNumber = cInterval.interval.getHigh();
+			MathNumber low = xInterval.interval.getLow();
+			MathNumber high = xInterval.interval.getHigh();
 
-			ValueEnvironment<Interval> xEnvironment = new ValueEnvironment<>(intervalToSplit).putState(x, intervalToSplit);
-			ValueEnvironment<Interval> cEnvironment = xEnvironment.putState(c, randInterval);
-
-			MathNumber constantNumber = randInterval.interval.getHigh();
-			MathNumber identifierLowNumber = intervalToSplit.interval.getLow();
-			MathNumber identifierHighNumber = intervalToSplit.interval.getHigh();
-
-			Pair<Interval, Interval> expEqualCase = Pair.of(randInterval, intervalToSplit);
-			Pair<Interval, Interval> expNotEqualCase = Pair.of(intervalToSplit, randInterval);
-			Pair<Interval, Interval> expGreaterThanCase = null;
-			Pair<Interval, Interval> expLessThanCase = null;
-			Pair<Interval, Interval> expGreaterOrEqualCase = null;
-			Pair<Interval, Interval> expLessOrEqualCase = null;
-			if(constantNumber.lt(identifierLowNumber)) {
-				expGreaterThanCase = Pair.of(intervalToSplit, new Interval().bottom());
-				expLessThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expGreaterOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
-				expLessOrEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
-			} else if(constantNumber.gt(identifierHighNumber)) {
-				expGreaterThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expLessThanCase = Pair.of(intervalToSplit, new Interval().bottom());
-				expGreaterOrEqualCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expLessOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
-			} else if(constantNumber.equals(identifierHighNumber)) {
-				expGreaterThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expLessOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
-				expGreaterOrEqualCase = Pair.of(new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()),
-						new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getLow().subtract(MathNumber.ONE)));
-				expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
-						new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()));
-			} else if(constantNumber.equals(identifierLowNumber)) {
-				expLessThanCase = Pair.of(new Interval().bottom(), intervalToSplit);
-				expGreaterOrEqualCase = Pair.of(intervalToSplit, new Interval().bottom());
-				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
-						new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()));
-				expLessOrEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()),
-						new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
-			} else {
-				expGreaterThanCase = Pair.of(new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()),
-						new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()));
-				expLessThanCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh().subtract(MathNumber.ONE)),
-						new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()));
-				expGreaterOrEqualCase = Pair.of(new Interval(randInterval.interval.getLow(), intervalToSplit.interval.getHigh()),
-						new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getLow().subtract(MathNumber.ONE)));
-				expLessOrEqualCase = Pair.of(new Interval(intervalToSplit.interval.getLow(), randInterval.interval.getHigh()),
-						new Interval(randInterval.interval.getHigh().add(MathNumber.ONE), intervalToSplit.interval.getHigh()));
-			}
-
-			System.out.println("------------------------------------------ inizio iter: " + i + " -----------------------------");
-			System.out.println("x environment: " + xEnvironment);
-			System.out.println("c environment: " + cEnvironment);
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
+			System.out.println("********************(==)********************");
 			System.out.println("expression: " + eqExpr);
-			Pair<Interval, Interval> actualEqualCase = intervalToSplit.split(cEnvironment, eqExpr, pp, pp, oracle);
-			System.out.println("Operator (==), Expected: " + expEqualCase + ", Actual: " + actualEqualCase);
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
-			System.out.println("expression: " + neExpr);
-			Pair<Interval, Interval> actualNotEqualCase = intervalToSplit.split(cEnvironment, neExpr, pp, pp, oracle);
-			System.out.println("Operator (!=), Expected: " + expNotEqualCase + ", Actual: " + actualNotEqualCase);
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
-			System.out.println("expression: " + gtExpr);
-			Pair<Interval, Interval> actualGreaterThanCase = intervalToSplit.split(cEnvironment, gtExpr, pp, pp, oracle);
-			System.out.println("Operator  (>), Expected: " + expGreaterThanCase + ", Actual: " + actualGreaterThanCase);
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
-			System.out.println("expression: " + ltExpr);
-			Pair<Interval, Interval> actualLessThanCase = intervalToSplit.split(cEnvironment, ltExpr, pp, pp, oracle);
-			System.out.println("Operator  (<), Expected: " + expLessThanCase + ", Actual: " + actualLessThanCase);
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
-			System.out.println("expression: " + geExpr);
-			Pair<Interval, Interval> actualGreaterOrEqualCase = intervalToSplit.split(cEnvironment, geExpr, pp, pp, oracle);
-			System.out.println("Operator (>=), Expected: " + expGreaterOrEqualCase + ", Actual: " + actualGreaterOrEqualCase);
-			System.out.println("-----------------------------------------------------------------------------------------------");
-			System.out.println("x: " + intervalToSplit + ", c: " + randInterval);
-			System.out.println("expression: " + leExpr);
-			Pair<Interval, Interval> actualLessOrEqualCase = intervalToSplit.split(cEnvironment, leExpr, pp, pp, oracle);
-			System.out.println("Operator (<=), Expected: " + expLessOrEqualCase + ", Actual: " + actualLessOrEqualCase);
-			System.out.println("---------------------------------------------- fine iter: " + i + "----------------------------");
+			System.out.println("x interval: " + xInterval + ", c interval: " + cInterval);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> actualEqEnvs = xInterval.split(environment, eqExpr, pp, pp, oracle);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> expectedEqEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, cInterval).putState(c, cInterval),
+					new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval));
+			System.out.println("actual envs: " + actualEqEnvs);
+			System.out.println("expected envs: " + expectedEqEnvs);
+			assertEquals("The values don't match: ", actualEqEnvs, expectedEqEnvs);
+			System.out.println("*******************************************");
 
-			assertEquals("The values don't match for equal operator: ", expEqualCase, actualEqualCase);
-			assertEquals("The values don't match for not equal operator: ", expNotEqualCase, actualNotEqualCase);
-			assertEquals("The values don't match for greater than operator: ", expGreaterThanCase, actualGreaterThanCase);
-			assertEquals("The values don't match for less than operator: ", expLessThanCase, actualLessThanCase);
-			assertEquals("The values don't match for greater or equal than operator: ", expGreaterOrEqualCase, actualGreaterOrEqualCase);
-			assertEquals("The values don't match for less or equal than operator: ", expLessOrEqualCase, actualLessOrEqualCase);
+			System.out.println("*********************(!=)*******************");
+			System.out.println("expression: " + neExpr);
+			System.out.println("x interval: " + xInterval + ", c interval: " + cInterval);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> actualNeEnvs = xInterval.split(environment, neExpr, pp, pp, oracle);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> expectedNeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval)
+					, new ValueEnvironment<>(xInterval).putState(x, cInterval).putState(c, cInterval));
+			System.out.println("actual envs: " + actualNeEnvs);
+			System.out.println("expected envs: " + expectedNeEnvs);
+			assertEquals("The values don't match: ", actualNeEnvs, expectedNeEnvs);
+			System.out.println("********************************************");
+
+			System.out.println("*********************(>)*******************");
+			System.out.println("expression: " + gtExpr);
+			System.out.println("x interval: " + xInterval + ", c interval: " + cInterval);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> actualGtEnvs = xInterval.split(environment, gtExpr, pp, pp, oracle);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> expectedGtEnvs = null;
+			if (low.gt(constantNumber))
+				expectedGtEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval),
+						new ValueEnvironment<>(new Interval().bottom()));
+			else if (high.leq(constantNumber)) {
+				expectedGtEnvs = Pair.of(new ValueEnvironment<>(new Interval().bottom()),
+						new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval));
+			} else if (low.leq(constantNumber) && high.gt(constantNumber)) {
+				expectedGtEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, new Interval(constantNumber.add(MathNumber.ONE), high)).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(low, constantNumber)).putState(c, cInterval));
+			} else {
+				expectedGtEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(low, constantNumber)).putState(c, cInterval));
+			}
+			System.out.println("actual envs: " + actualGtEnvs);
+			System.out.println("expected envs: " + expectedGtEnvs);
+			assertEquals("The values don't match: ", actualGtEnvs, expectedGtEnvs);
+			System.out.println("********************************************");
+
+			System.out.println("*********************(<)*******************");
+			System.out.println("expression: " + ltExpr);
+			System.out.println("x interval: " + xInterval + ", c interval: " + cInterval);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> actualLtEnvs = xInterval.split(environment, ltExpr, pp, pp, oracle);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> expectedLtEnvs = null;
+			if (high.lt(constantNumber))
+				expectedLtEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval),
+						new ValueEnvironment<>(new Interval().bottom()));
+			else if (low.lt(constantNumber) && high.geq(constantNumber)) {
+				expectedLtEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, new Interval(low, constantNumber.subtract(MathNumber.ONE))).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(constantNumber, high)).putState(c, cInterval));
+			} else if (high.geq(constantNumber)) {
+				expectedLtEnvs = Pair.of(new ValueEnvironment<>(new Interval().bottom()),
+						new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval));
+			}
+			System.out.println("actual envs: " + actualLtEnvs);
+			System.out.println("expected envs: " + expectedLtEnvs);
+			assertEquals("The values don't match: ", actualLtEnvs, expectedLtEnvs);
+			System.out.println("********************************************");
+
+			System.out.println("*********************(>=)*******************");
+			System.out.println("expression: " + geExpr);
+			System.out.println("x interval: " + xInterval + ", c interval: " + cInterval);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> actualGeEnvs = xInterval.split(environment, geExpr, pp, pp, oracle);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> expectedGeEnvs = null;
+
+			if (constantNumber.leq(low) && constantNumber.lt(high))
+				expectedGeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval),
+						new ValueEnvironment<>(new Interval().bottom()));
+			else if (high.lt(constantNumber)) {
+				expectedGeEnvs = Pair.of(new ValueEnvironment<>(new Interval().bottom()),
+						new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval));
+			} else if (low.lt(constantNumber) && high.gt(constantNumber)) {
+				expectedGeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, new Interval(constantNumber, high)).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(low, constantNumber.subtract(MathNumber.ONE))).putState(c, cInterval));
+			} else if(low.lt(constantNumber) && high.equals(constantNumber)) {
+				expectedGeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, cInterval).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(low, constantNumber.subtract(MathNumber.ONE))).putState(c, cInterval));
+			} else if(constantNumber.equals(low) && constantNumber.equals(high)) {
+				expectedGeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval),
+						new ValueEnvironment<>(new Interval().bottom()));
+			}
+			System.out.println("actual envs: " + actualGeEnvs);
+			System.out.println("expected envs: " + expectedGeEnvs);
+			assertEquals("The values don't match: ", actualGeEnvs, expectedGeEnvs);
+			System.out.println("********************************************");
+
+			System.out.println("*********************(<=)*******************");
+			System.out.println("expression: " + leExpr);
+			System.out.println("x interval: " + xInterval + ", c interval: " + cInterval);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> actualLeEnvs = xInterval.split(environment, leExpr, pp, pp, oracle);
+			Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> expectedLeEnvs = null;
+
+			if (low.gt(constantNumber) && high.gt(constantNumber))
+				expectedLeEnvs = Pair.of(new ValueEnvironment<>(new Interval().bottom()),
+						new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval));
+			else if (low.lt(constantNumber) && high.gt(constantNumber)) {
+				expectedLeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, new Interval(low, constantNumber)).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(constantNumber.add(MathNumber.ONE), high)).putState(c, cInterval));
+			} else if (high.leq(constantNumber)) {
+				expectedLeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, xInterval).putState(c, cInterval),
+						new ValueEnvironment<>(new Interval().bottom()));
+			} else if (low.leq(constantNumber) && high.gt(constantNumber)) {
+				expectedLeEnvs = Pair.of(new ValueEnvironment<>(xInterval).putState(x, cInterval).putState(c, cInterval),
+						new ValueEnvironment<>(xInterval).putState(x, new Interval(constantNumber.add(MathNumber.ONE), high)).putState(c, cInterval));
+			}
+			System.out.println("actual envs: " + actualLeEnvs);
+			System.out.println("expected envs: " + expectedLeEnvs);
+			assertEquals("The values don't match: ", actualLeEnvs, expectedLeEnvs);
+			System.out.println("********************************************");
 		}
 	}
 }

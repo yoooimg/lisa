@@ -517,9 +517,6 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 		BinaryOperator operator = ((BinaryExpression) expr).getOperator();
 		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
 		ValueExpression right = (ValueExpression) ((BinaryExpression) expr).getRight();
-		ValueEnvironment<Interval> trueCaseValueEnvironment = environment;
-		ValueEnvironment<Interval> falseCaseValueEnvironment = environment;
-
 		BinaryOperator t = null;
 		BinaryOperator f = null;
 		if(operator == ComparisonEq.INSTANCE) {
@@ -541,13 +538,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 			t = operator;
 			f = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
 		}
-
-		trueCaseValueEnvironment = Interval.ZERO.assumeBinaryExpression(trueCaseValueEnvironment, t, left, right, src, dest, oracle);
-		Interval trueCaseInterval = trueCaseValueEnvironment.getState((Identifier) left);
-
-		falseCaseValueEnvironment = Interval.ZERO.assumeBinaryExpression(falseCaseValueEnvironment, f, left, right, src, dest, oracle);
-		Interval falseCaseInterval = falseCaseValueEnvironment.getState((Identifier) left);
-
-		return Pair.of(trueCaseInterval, falseCaseInterval);
+		return Pair.of(Interval.ZERO.assumeBinaryExpression(environment, t, left, right, src, dest, oracle),
+				Interval.ZERO.assumeBinaryExpression(environment, f, left, right, src, dest, oracle));
 	}
 }
