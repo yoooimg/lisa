@@ -10,6 +10,7 @@ import it.unive.lisa.analysis.numeric.Interval;
 import it.unive.lisa.analysis.numeric.Parity;
 import it.unive.lisa.analysis.numeric.Pentagon;
 import it.unive.lisa.analysis.numeric.Sign;
+import it.unive.lisa.conf.LiSAConfiguration;
 import it.unive.lisa.conf.LiSAConfiguration.DescendingPhaseType;
 import org.junit.Test;
 
@@ -67,6 +68,7 @@ public class NumericAnalysesTest extends AnalysisTestExecutor {
 				DefaultConfiguration.defaultTypeDomain());
 		conf.testDir = "numeric";
 		conf.testSubDir = "split";
+		conf.analysisGraphs = LiSAConfiguration.GraphType.DOT;
 		conf.programFile = "split.imp";
 		perform(conf);
 	}
