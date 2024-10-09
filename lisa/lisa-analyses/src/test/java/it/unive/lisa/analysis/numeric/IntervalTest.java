@@ -31,7 +31,7 @@ public class IntervalTest {
 	private static final int TEST_LIMIT = 5000;
 
 	private final Random rand = new Random();
-	private final ProgramPoint pp = TestParameterProvider.provideParam(null, ProgramPoint.class);;
+	private final ProgramPoint pp = TestParameterProvider.provideParam(null, ProgramPoint.class);
 	private final Interval singleton = new Interval();
 	private final Variable variable = new Variable(Int32Type.INSTANCE, "x", pp.getLocation());
 	private final Variable varAux = new Variable(Int32Type.INSTANCE, "aux", pp.getLocation());
