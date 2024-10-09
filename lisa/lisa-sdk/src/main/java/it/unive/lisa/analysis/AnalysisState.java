@@ -4,12 +4,13 @@ import it.unive.lisa.analysis.lattices.ExpressionSet;
 import it.unive.lisa.analysis.lattices.Satisfiability;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
+import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.util.representation.ObjectRepresentation;
 import it.unive.lisa.util.representation.StructuredObject;
 import it.unive.lisa.util.representation.StructuredRepresentation;
 
-import java.util.HashMap;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -611,20 +612,38 @@ public class AnalysisState<A extends AbstractState<A>>
 	public AnalysisState<A> withTopTypes() {
 		return new AnalysisState<>(state.withTopTypes(), computedExpressions, info);
 	}
-	
+
+	Cache.InnerKey key;
 	public Pair<AnalysisState<A>, AnalysisState<A>> split(SymbolicExpression expression,
 			ProgramPoint src,
 			ProgramPoint des) throws SemanticException {
-		Cache.InnerKey key = Cache.createKey(expression);
-		if(Cache.containsKeyAndState(key, state)) {
-			System.out.println("[Cache]: current state already exist for key");
-			return Cache.getAnalysisStates(key, state);
+
+		if(expression instanceof BinaryExpression) {
+			BinaryExpression binary = (BinaryExpression) expression;
+			System.out.println("[AnalysisState]: the given expression is a binary expression");
+			key = Cache.createKey(binary);
+
+			if (Cache.containsKeyAndState(key, state)) {
+				System.out.println("[Cache]: the given abstractState exist for the given key");
+				return Cache.getAnalysisStates(key, state);
+			}
+
+			System.out.println("[Cache]: doesn't contains splitted analysisStates for the given key and abstractState");
 		}
+
 		Pair<A, A> states = state.split(expression, src, des, state);
-		System.out.println("[Split]: done!" );
 		AnalysisState<A> trueCaseState = new AnalysisState<>(states.getLeft(), computedExpressions, info);
 		AnalysisState<A> falseCaseState = new AnalysisState<>(states.getRight(), computedExpressions, info);
-		Cache.putAnalysisStates(key, state, Pair.of(trueCaseState,falseCaseState));
+		System.out.println("[Split]: done!" );
+
+		if (!(expression instanceof BinaryExpression)) {
+			System.out.println("[AnalysisState]: the given expression is not a binary expression (Cache won't be touch)");
+			System.out.println("[AnalysisState]: here the splitted analysisStates for the given not binary expression: " + Pair.of(trueCaseState, falseCaseState));
+		}
+
+		if(key != null)
+			Cache.putAnalysisStates(key, state, Pair.of(trueCaseState,falseCaseState));
+
 		return Pair.of(trueCaseState, falseCaseState);
 	}
 }
