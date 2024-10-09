@@ -13,26 +13,22 @@ public class Cache {
     static Map<Pair<Pair<ValueExpression, ValueExpression>, Pair<CodeLocation, BinaryOperator>>,
             InnerKey> keys = new LinkedHashMap<>();
 
-    static InnerKey createKey(SymbolicExpression expression) throws SemanticException {
-        if (expression instanceof BinaryExpression) {
-            BinaryExpression binary = (BinaryExpression) expression;
-            ValueExpression left = (ValueExpression) binary.getLeft();
-            ValueExpression right = (ValueExpression) binary.getRight();
-            CodeLocation location = binary.getCodeLocation();
-            BinaryOperator operator = binary.getOperator();
-            InnerKey key;
-            if(keys.containsKey(Pair.of(Pair.of(left, right), Pair.of(location, operator)))) {
-                key = keys.get(Pair.of(Pair.of(left, right), Pair.of(location, operator)));
-                System.out.println("[Cache]: get key for expression: " + binary);
-            } else {
-                key = new InnerKey(binary);
-                System.out.println("[Cache]: create key for expression: " + binary);
-            }
-            keys.put(Pair.of(Pair.of(key.left, key.right), Pair.of(key.location, key.operator)), key);
-            return key;
+    static InnerKey createKey(BinaryExpression expression) {
+        ValueExpression left = (ValueExpression) expression.getLeft();
+        CodeLocation location = expression.getCodeLocation();
+        ValueExpression right = (ValueExpression) expression.getRight();
+        BinaryOperator operator = expression.getOperator();
+
+        InnerKey key;
+        if(keys.containsKey(Pair.of(Pair.of(left, right), Pair.of(location, operator)))) {
+           key = keys.get(Pair.of(Pair.of(left, right), Pair.of(location, operator)));
+           System.out.println("[Cache]: get key for the given binary expression: " + expression);
         } else {
-            throw new IllegalArgumentException("Unsupported expression type: " + expression.getClass().getName());
+            key = new InnerKey(expression);
+            System.out.println("[Cache]: create key for the given binary expression: " + expression);
         }
+        keys.put(Pair.of(Pair.of(key.left, key.right), Pair.of(key.location, key.operator)), key);
+        return key;
     }
 
     static <A extends AbstractState<A>> void putAnalysisStates(InnerKey key, A state, Pair<AnalysisState<A>, AnalysisState<A>> analysisStates) {
@@ -47,7 +43,6 @@ public class Cache {
         return InnerKey.containsAll(key, state);
     }
 
-
     static final class InnerKey {
         final ValueExpression left;
         final ValueExpression right;
@@ -58,7 +53,7 @@ public class Cache {
         Map<AbstractState<?>,
                 Pair<AnalysisState<?>, AnalysisState<?>>> analysisStates = new HashMap<>();
 
-        InnerKey(BinaryExpression expression) {
+       InnerKey(BinaryExpression expression) {
             this.left = (ValueExpression) expression.getLeft();
             this.right = (ValueExpression) expression.getRight();
             this.location = expression.getCodeLocation();
@@ -87,7 +82,7 @@ public class Cache {
             Pair <AnalysisState<?>, AnalysisState<?>> results = this.analysisStates.get(state);
             AnalysisState<A> left = (AnalysisState<A>) results.getLeft();
             AnalysisState<A> right = (AnalysisState<A>) results.getRight();
-            System.out.println("[Cache]: get pairOfAnalysisState: " + Pair.of(left, right));
+            System.out.println("[Cache]: get pairOfAnalysisState for the given key and abstractState: " + Pair.of(left, right));
             return Pair.of(left, right);
         }
 
@@ -96,7 +91,7 @@ public class Cache {
             AnalysisState<?> left = analysisStates.getLeft();
             AnalysisState<?> right = analysisStates.getRight();
             this.analysisStates.put(state, Pair.of(left, right));
-            System.out.println("[Cache]: add pairOfAnalysisState: " + Pair.of(left, right));
+            System.out.println("[Cache]: add pairOfAnalysisState for the given key and abstractState: " + Pair.of(left, right));
         }
     }
 }
