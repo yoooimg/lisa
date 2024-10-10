@@ -47,4 +47,4 @@ diagrams/
 test-outputs/
 /bin/
 
-.idea
+.idea*.hprof
