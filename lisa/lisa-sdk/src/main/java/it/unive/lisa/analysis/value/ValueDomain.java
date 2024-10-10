@@ -9,14 +9,9 @@ import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.heap.HeapDomain;
 import it.unive.lisa.analysis.heap.HeapSemanticOperation.HeapReplacement;
 import it.unive.lisa.program.cfg.ProgramPoint;
-import it.unive.lisa.program.cfg.edge.FalseEdge;
-import it.unive.lisa.program.cfg.edge.TrueEdge;
-import it.unive.lisa.program.cfg.statement.Statement;
 import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.Variable;
-import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 
 /**
  * A semantic domain that can evaluate the semantic of statements that operate
@@ -73,25 +68,9 @@ Lattice<D> {
 	@Override
 	default Pair<D, D> split(ValueExpression expr, 
 			ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
-
 		if (this.isBottom())
 			return Pair.of(bottom(), bottom());
 		
-		if (src.getCFG().containsEdge(new TrueEdge((Statement) src, (Statement) dest))) {
-			Statement falseStmt = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof FalseEdge).findFirst().get().getDestination();
-
-			return Pair.of(this.assume(expr, src, dest, oracle),
-					this.assume(new UnaryExpression(expr.getStaticType(), 
-							expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, falseStmt, oracle));
-		} 
-		
-		if (src.getCFG().containsEdge(new FalseEdge((Statement) src, (Statement) dest))) {
-			Statement trueStmt = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof TrueEdge).findFirst().get().getDestination();
-
-			return Pair.of(this.assume(new UnaryExpression(expr.getStaticType(), 
-							expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, trueStmt, oracle), this.assume(expr, src, dest, oracle));
-		} 
-		
-		return null;
+		return SemanticDomain.super.split(expr, src, dest, oracle);
 	}
 }
