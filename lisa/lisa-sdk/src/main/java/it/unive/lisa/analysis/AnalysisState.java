@@ -613,7 +613,7 @@ public class AnalysisState<A extends AbstractState<A>>
 		return new AnalysisState<>(state.withTopTypes(), computedExpressions, info);
 	}
 
-	Cache.InnerKey key;
+	static Cache.InnerKey key;
 	public Pair<AnalysisState<A>, AnalysisState<A>> split(SymbolicExpression expression,
 			ProgramPoint src,
 			ProgramPoint des) throws SemanticException {

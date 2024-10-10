@@ -1,5 +1,14 @@
 package it.unive.lisa.analysis.traces;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import it.unive.lisa.analysis.AbstractState;
 import it.unive.lisa.analysis.Lattice;
 import it.unive.lisa.analysis.ScopeToken;
@@ -20,14 +29,6 @@ import it.unive.lisa.type.Untyped;
 import it.unive.lisa.util.representation.MapRepresentation;
 import it.unive.lisa.util.representation.StringRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.function.Predicate;
 
 /**
  * The trace partitioning abstract domain that splits execution traces to
@@ -60,10 +61,10 @@ import java.util.function.Predicate;
  *          "https://doi.org/10.1145/1275497.1275501">https://doi.org/10.1145/1275497.1275501</a>
  */
 public class TracePartitioning<A extends AbstractState<A>>
-		extends
-		FunctionalLattice<TracePartitioning<A>, ExecutionTrace, A>
-		implements
-		AbstractState<TracePartitioning<A>> {
+extends
+FunctionalLattice<TracePartitioning<A>, ExecutionTrace, A>
+implements
+AbstractState<TracePartitioning<A>> {
 
 	/**
 	 * The maximum number of {@link LoopIteration} tokens that a trace can
@@ -123,7 +124,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isBottom())
 			return this;
 
@@ -141,7 +142,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isBottom())
 			return this;
 
@@ -160,7 +161,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isBottom())
 			return this;
 
@@ -226,7 +227,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 	@Override
 	public TracePartitioning<A> forgetIdentifier(
 			Identifier id)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop() || isBottom() || function == null)
 			return this;
 
@@ -239,7 +240,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 	@Override
 	public TracePartitioning<A> forgetIdentifiersIf(
 			Predicate<Identifier> test)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop() || isBottom() || function == null)
 			return this;
 
@@ -254,7 +255,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop())
 			return Satisfiability.UNKNOWN;
 
@@ -274,7 +275,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 	@Override
 	public TracePartitioning<A> pushScope(
 			ScopeToken token)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop() || isBottom() || function == null)
 			return this;
 
@@ -287,7 +288,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 	@Override
 	public TracePartitioning<A> popScope(
 			ScopeToken token)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop() || isBottom() || function == null)
 			return this;
 
@@ -351,7 +352,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (!expression.mightNeedRewriting())
 			return new ExpressionSet(expression);
 
@@ -371,7 +372,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			ExpressionSet expressions,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop())
 			return lattice.top().rewrite(expressions, pp, oracle);
 		else if (isBottom() || function == null)
@@ -388,7 +389,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop())
 			return lattice.top().getRuntimeTypesOf(e, pp, oracle);
 		else if (isBottom() || function == null)
@@ -405,7 +406,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop())
 			return lattice.top().getDynamicTypeOf(e, pp, oracle);
 		else if (isBottom() || function == null)
@@ -469,17 +470,12 @@ public class TracePartitioning<A extends AbstractState<A>>
 	}
 
 	@Override
-	public Pair<TracePartitioning<A>, TracePartitioning<A>> split(SymbolicExpression expr, ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) {
-		return null;
-	}
-
-	@Override
 	public Satisfiability alias(
 			SymbolicExpression x,
 			SymbolicExpression y,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop())
 			return Satisfiability.UNKNOWN;
 
@@ -502,7 +498,7 @@ public class TracePartitioning<A extends AbstractState<A>>
 			SymbolicExpression y,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isTop())
 			return Satisfiability.UNKNOWN;
 
@@ -517,5 +513,14 @@ public class TracePartitioning<A extends AbstractState<A>>
 			result = result.lub(sat);
 		}
 		return result;
+	}
+
+	@Override
+	public Pair<TracePartitioning<A>, TracePartitioning<A>> split(SymbolicExpression expr, ProgramPoint src,
+			ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
+		if (isBottom())
+			return Pair.of(bottom(), bottom());
+		else
+			return AbstractState.super.split(expr, src, dest, oracle);
 	}
 }

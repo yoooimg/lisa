@@ -1,5 +1,13 @@
 package it.unive.lisa.analysis;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import it.unive.lisa.analysis.heap.HeapDomain;
 import it.unive.lisa.analysis.heap.HeapSemanticOperation.HeapReplacement;
 import it.unive.lisa.analysis.lattices.ExpressionSet;
@@ -14,13 +22,6 @@ import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.util.representation.ObjectRepresentation;
 import it.unive.lisa.util.representation.StructuredRepresentation;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * An abstract state of the analysis, composed by a heap state modeling the
@@ -715,27 +716,25 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 		return heapState.isReachableFrom(x, y, pp, oracle);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Pair<SimpleAbstractState<H, V, T>, SimpleAbstractState<H, V, T>> split(SymbolicExpression expr, ProgramPoint src,
 			ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
 
-			Pair<H, H> heapStateSplit = null;
-				heapStateSplit = heapState.split(expr, dest, dest, oracle);
-
-			Pair<V, V> valueStateSplit = null;
-				valueStateSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
-
-			Pair<TypeDomain<T>, TypeDomain<T>> typeStateSplit = typeState.split(expr);
+			Pair<H, H> hSplit = heapState.split(expr, src, dest, oracle);
+			
+			Pair<V, V> vSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
+						
+			Pair<T, T> tSplit = typeState.split((ValueExpression) expr, src, dest, oracle);
+						
 			SimpleAbstractState<H, V, T> trueCaseSimpleAbstractState = new SimpleAbstractState<>(
-					heapStateSplit.getLeft(),
-					valueStateSplit.getLeft(),
-					(T) typeStateSplit.getLeft());
+					hSplit.getLeft(),
+					vSplit.getLeft(),
+					tSplit.getLeft());
 
 			SimpleAbstractState<H, V, T> falseCaseSimpleAbstractState = new SimpleAbstractState<>(
-					heapStateSplit.getRight(),
-					valueStateSplit.getRight(),
-					(T)	typeStateSplit.getRight());
+					hSplit.getRight(),
+					vSplit.getRight(),
+					tSplit.getRight());
 
 			return Pair.of(trueCaseSimpleAbstractState, falseCaseSimpleAbstractState);
 	}

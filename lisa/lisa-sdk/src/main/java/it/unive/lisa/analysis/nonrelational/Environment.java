@@ -2,16 +2,12 @@ package it.unive.lisa.analysis.nonrelational;
 
 import java.util.Map;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.lattices.FunctionalLattice;
 import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.symbolic.value.UnaryExpression;
-import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
 
 /**
  * An environment for a {@link NonRelationalDomain}, that maps
@@ -29,14 +25,13 @@ import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
  *                instances are mapped in this environment
  */
 public abstract class Environment<M extends Environment<M, E, T>,
-		E extends SymbolicExpression,
-		T extends NonRelationalDomain<T, E, M>>
-		extends
-		VariableLift<M, E, T> {
+E extends SymbolicExpression,
+T extends NonRelationalDomain<T, E, M>>
+extends
+VariableLift<M, E, T> {
 
 	/**
 	 * Builds an empty environment.
-	 * 
 	 * @param domain a singleton instance to be used during semantic operations
 	 *                   to retrieve top and bottom values
 	 */
@@ -69,7 +64,7 @@ public abstract class Environment<M extends Environment<M, E, T>,
 			E expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isBottom())
 			return (M) this;
 
@@ -97,7 +92,7 @@ public abstract class Environment<M extends Environment<M, E, T>,
 			E expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		// environments do not change without assignments
 		return (M) this;
 	}
@@ -118,7 +113,7 @@ public abstract class Environment<M extends Environment<M, E, T>,
 			E expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		return lattice.eval(expression, (M) this, pp, oracle);
 	}
 
@@ -129,23 +124,9 @@ public abstract class Environment<M extends Environment<M, E, T>,
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (isBottom())
 			return (M) this;
 		return lattice.assume((M) this, expression, src, dest, oracle);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public Pair<M, M> split(
-			E expr,
-			ProgramPoint src,
-			ProgramPoint dest,
-			SemanticOracle oracle)
-			throws SemanticException {
-		M trueEnv = lattice.assume((M) this, expr, src, dest, oracle);
-		M falseEnv = lattice.assume((M) this, (E) new UnaryExpression(expr.getStaticType(),
-				expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle);
-		return Pair.of(trueEnv, falseEnv);
 	}
 }

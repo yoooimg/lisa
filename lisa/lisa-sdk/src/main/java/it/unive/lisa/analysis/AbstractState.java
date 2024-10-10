@@ -1,10 +1,5 @@
 package it.unive.lisa.analysis;
 
-import it.unive.lisa.symbolic.value.UnaryExpression;
-import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
-import org.apache.commons.lang3.tuple.Pair;
-
-import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 
@@ -50,11 +45,4 @@ public interface AbstractState<A extends AbstractState<A>>
 	 * @return the copy with top types
 	 */
 	A withTopTypes();
-	
-	default Pair<A, A> split(SymbolicExpression expr, ProgramPoint src,
-			ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
-		return Pair.of(this.assume(expr, src, dest, oracle),
-				this.assume(new UnaryExpression(expr.getStaticType(),
-						expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle));
-	}
 }

@@ -508,7 +508,7 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 	@Override
 	public Pair<ValueEnvironment<Interval>, ValueEnvironment<Interval>> split(ValueEnvironment<Interval> environment, ValueExpression expr,
 			ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
-
+		
 		if (!(expr instanceof BinaryExpression)) {
 			return Pair.of(this.assume(environment, expr, src, dest, oracle), this.assume(environment, new UnaryExpression(expr.getStaticType(),
 					expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, dest, oracle));	

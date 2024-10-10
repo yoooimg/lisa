@@ -1,15 +1,21 @@
 package it.unive.lisa.analysis;
 
-import it.unive.lisa.analysis.lattices.Satisfiability;
-import it.unive.lisa.program.cfg.ProgramPoint;
-import it.unive.lisa.symbolic.SymbolicExpression;
-import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.util.representation.StructuredObject;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.tuple.Pair;
+
+import it.unive.lisa.analysis.lattices.Satisfiability;
+import it.unive.lisa.program.cfg.ProgramPoint;
+import it.unive.lisa.program.cfg.edge.FalseEdge;
+import it.unive.lisa.program.cfg.edge.TrueEdge;
+import it.unive.lisa.program.cfg.statement.Statement;
+import it.unive.lisa.symbolic.SymbolicExpression;
+import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.UnaryExpression;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
+import it.unive.lisa.util.representation.StructuredObject;
 /**
  * A domain able to determine how abstract information evolves thanks to the
  * semantics of statements and expressions.
@@ -23,9 +29,9 @@ import org.apache.commons.lang3.tuple.Pair;
  *                handle
  */
 public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends SymbolicExpression, I extends Identifier>
-		extends
-		StructuredObject,
-		ScopedObject<D> {
+extends
+StructuredObject,
+ScopedObject<D> {
 
 	/**
 	 * Yields a copy of this domain, where {@code id} has been assigned to
@@ -46,7 +52,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 			E expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException;
+					throws SemanticException;
 
 	/**
 	 * Yields a copy of this domain, that has been modified accordingly to the
@@ -66,7 +72,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 			E expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException;
+					throws SemanticException;
 
 	/**
 	 * Yields a copy of this domain, modified by assuming that the given
@@ -91,14 +97,33 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
-			throws SemanticException;
-	
-	Pair<D, D> split(
-			E expression,
+					throws SemanticException;
+
+	default Pair<D, D> split(
+			E expr,
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
-			throws SemanticException;
+					throws SemanticException {
+
+		
+		if (src.getCFG().containsEdge(new TrueEdge((Statement) src, (Statement) dest))) {
+			Statement falseStmt = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof FalseEdge).findFirst().get().getDestination();
+
+			return Pair.of(this.assume(expr, src, dest, oracle),
+					this.assume((E) new UnaryExpression(expr.getStaticType(), 
+							expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, falseStmt, oracle));
+		} 
+		
+		if (src.getCFG().containsEdge(new FalseEdge((Statement) src, (Statement) dest))) {
+			Statement trueStmt = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof TrueEdge).findFirst().get().getDestination();
+
+			return Pair.of(this.assume((E) new UnaryExpression(expr.getStaticType(), 
+							expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, trueStmt, oracle), this.assume(expr, src, dest, oracle));
+		} 
+
+		return null;
+	}
 
 	/**
 	 * Yields {@code true} if this instance is currently tracking abstract
@@ -124,7 +149,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 	 */
 	D forgetIdentifier(
 			Identifier id)
-			throws SemanticException;
+					throws SemanticException;
 
 	/**
 	 * Forgets all {@link Identifier}s that match the given predicate. This
@@ -139,7 +164,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 	 */
 	D forgetIdentifiersIf(
 			Predicate<Identifier> test)
-			throws SemanticException;
+					throws SemanticException;
 
 	/**
 	 * Forgets all the given {@link Identifier}s. The default implementation of
@@ -154,7 +179,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 	 */
 	default D forgetIdentifiers(
 			Iterable<Identifier> ids)
-			throws SemanticException {
+					throws SemanticException {
 		@SuppressWarnings("unchecked")
 		D result = (D) this;
 		for (Identifier id : ids)
@@ -185,7 +210,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 			E expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException;
+					throws SemanticException;
 
 	/**
 	 * Yields a unique instance of the specific domain, of class {@code domain},
@@ -208,7 +233,7 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 	 */
 	default <T extends SemanticDomain<T, ?, ?> & Lattice<T>> T getDomainInstance(
 			Class<T> domain)
-			throws SemanticException {
+					throws SemanticException {
 		Collection<T> all = getAllDomainInstances(domain);
 		T result = null;
 		for (T instance : all)
@@ -244,5 +269,5 @@ public interface SemanticDomain<D extends SemanticDomain<D, E, I>, E extends Sym
 
 		return result;
 	}
-	
+
 }

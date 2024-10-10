@@ -1,13 +1,9 @@
 
 package it.unive.lisa.analysis.nonrelational.value;
 
-import it.unive.lisa.analysis.SemanticException;
-import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.nonrelational.NonRelationalDomain;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import it.unive.lisa.program.cfg.ProgramPoint;
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * A non-relational value domain, that is able to compute the value of a
@@ -22,12 +18,4 @@ import org.apache.commons.lang3.tuple.Pair;
 public interface NonRelationalValueDomain<T extends NonRelationalValueDomain<T>>
 		extends
 		NonRelationalDomain<T, ValueExpression, ValueEnvironment<T>> {
-
-//	@Override
-//	Pair<ValueEnvironment<T>, ValueEnvironment<T>> split(
-//			ValueEnvironment<T> environment,
-//			ValueExpression expr,
-//			ProgramPoint src,
-//			ProgramPoint dest,
-//			SemanticOracle oracle) throws SemanticException;
 }

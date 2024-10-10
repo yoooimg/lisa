@@ -1,15 +1,11 @@
 package it.unive.lisa.analysis.nonRedundantSet;
 
-import it.unive.lisa.analysis.SemanticException;
-import it.unive.lisa.analysis.SemanticOracle;
+import java.util.SortedSet;
+
 import it.unive.lisa.analysis.value.ValueDomain;
-import it.unive.lisa.program.cfg.ProgramPoint;
 import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.SortedSet;
 
 /**
  * This class expands the {@link NonRedundantPowerset} class fixing the type of
@@ -54,11 +50,6 @@ public class ValueNonRedundantSet<T extends ValueDomain<T>>
 	@Override
 	public boolean isTop() {
 		return this.isTop && this.elements.isEmpty();
-	}
-
-	@Override
-	public Pair<ValueNonRedundantSet<T>, ValueNonRedundantSet<T>> split(ValueExpression expression, ProgramPoint src, ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
-		return null;
 	}
 
 	@Override

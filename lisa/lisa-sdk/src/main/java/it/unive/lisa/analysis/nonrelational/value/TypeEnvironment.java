@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 /**
  * An environment for a {@link NonRelationalTypeDomain}, that maps
  * {@link Identifier}s to instances of such domain. This is a
@@ -112,5 +114,13 @@ public class TypeEnvironment<T extends NonRelationalTypeDomain<T>>
 		if (types.isEmpty())
 			return Untyped.INSTANCE;
 		return Type.commonSupertype(types, Untyped.INSTANCE);
+	}
+	
+	@Override
+	public Pair<TypeEnvironment<T>, TypeEnvironment<T>> split(ValueExpression expr, ProgramPoint src, ProgramPoint dest,
+			SemanticOracle oracle) throws SemanticException {
+		if (isBottom())
+			return Pair.of(bottom(), bottom());
+		return super.split(expr, src, dest, oracle);
 	}
 }

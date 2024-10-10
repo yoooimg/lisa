@@ -1,13 +1,17 @@
 package it.unive.lisa.analysis;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import it.unive.lisa.program.cfg.CodeLocation;
-import it.unive.lisa.symbolic.SymbolicExpression;
 import it.unive.lisa.symbolic.value.BinaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.util.*;
 
 public class Cache {
     static Map<Pair<Pair<ValueExpression, ValueExpression>, Pair<CodeLocation, BinaryOperator>>,
