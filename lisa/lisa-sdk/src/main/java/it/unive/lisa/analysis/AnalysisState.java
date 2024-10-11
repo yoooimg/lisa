@@ -1,21 +1,22 @@
 package it.unive.lisa.analysis;
 
-import it.unive.lisa.analysis.lattices.ExpressionSet;
-import it.unive.lisa.analysis.lattices.Satisfiability;
-import it.unive.lisa.program.cfg.ProgramPoint;
-import it.unive.lisa.symbolic.SymbolicExpression;
-import it.unive.lisa.symbolic.value.BinaryExpression;
-import it.unive.lisa.symbolic.value.Identifier;
-import it.unive.lisa.util.representation.ObjectRepresentation;
-import it.unive.lisa.util.representation.StructuredObject;
-import it.unive.lisa.util.representation.StructuredRepresentation;
-
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+
 import org.apache.commons.lang3.tuple.Pair;
+
+import it.unive.lisa.analysis.lattices.ExpressionSet;
+import it.unive.lisa.analysis.lattices.Satisfiability;
+import it.unive.lisa.program.cfg.ProgramPoint;
+import it.unive.lisa.symbolic.SymbolicExpression;
+import it.unive.lisa.symbolic.value.Identifier;
+import it.unive.lisa.symbolic.value.UnaryExpression;
+import it.unive.lisa.symbolic.value.operator.unary.LogicalNegation;
+import it.unive.lisa.util.representation.ObjectRepresentation;
+import it.unive.lisa.util.representation.StructuredObject;
+import it.unive.lisa.util.representation.StructuredRepresentation;
 
 /**
  * The abstract analysis state at a given program point. An analysis state is
@@ -613,37 +614,24 @@ ScopedObject<AnalysisState<A>> {
 		return new AnalysisState<>(state.withTopTypes(), computedExpressions, info);
 	}
 
-	static Cache.InnerKey key;
 	public Pair<AnalysisState<A>, AnalysisState<A>> split(SymbolicExpression expression,
 			ProgramPoint src,
-			ProgramPoint des) throws SemanticException {
+			ProgramPoint dest) throws SemanticException {
 
-		if(expression instanceof BinaryExpression) {
-			BinaryExpression binary = (BinaryExpression) expression;
-			System.out.println("[AnalysisState]: the given expression is a binary expression");
-			key = Cache.createKey(binary);
-
-			if (Cache.containsKeyAndState(key, state)) {
-				System.out.println("[Cache]: the given abstractState exist for the given key");
-				return Cache.getAnalysisStates(key, state);
-			}
-
-			System.out.println("[Cache]: doesn't contains splitted analysisStates for the given key and abstractState");
-		}
-
-		Pair<A, A> states = state.split(expression, src, des, state);
+		Pair<A, A> states = state.split(expression, src, dest, state);
 		AnalysisState<A> trueCaseState = new AnalysisState<>(states.getLeft(), computedExpressions, info);
-		AnalysisState<A> falseCaseState = new AnalysisState<>(states.getRight(), computedExpressions, info);
-		System.out.println("[Split]: done!" );
-
-		if (!(expression instanceof BinaryExpression)) {
-			System.out.println("[AnalysisState]: the given expression is not a binary expression (Cache won't be touch)");
-			System.out.println("[AnalysisState]: here the splitted analysisStates for the given not binary expression: " + Pair.of(trueCaseState, falseCaseState));
+		
+		Set<SymbolicExpression> negatedComputedExpression = new HashSet<>();
+		for (SymbolicExpression expr : computedExpressions) {
+			UnaryExpression negated = new UnaryExpression(
+					expr.getStaticType(),
+					expr,
+					LogicalNegation.INSTANCE,
+					expr.getCodeLocation());
+			negatedComputedExpression.add(negated);
 		}
-
-		if(key != null)
-			Cache.putAnalysisStates(key, state, Pair.of(trueCaseState,falseCaseState));
-
+		
+		AnalysisState<A> falseCaseState = new AnalysisState<>(states.getRight(), new ExpressionSet(negatedComputedExpression), info);
 		return Pair.of(trueCaseState, falseCaseState);
 	}
 }

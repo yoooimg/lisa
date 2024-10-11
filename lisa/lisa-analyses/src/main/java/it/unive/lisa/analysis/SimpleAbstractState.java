@@ -719,9 +719,8 @@ AbstractState<SimpleAbstractState<H, V, T>> {
 	@Override
 	public Pair<SimpleAbstractState<H, V, T>, SimpleAbstractState<H, V, T>> split(SymbolicExpression expr, ProgramPoint src,
 			ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
-		
 		Pair<H, H> hSplit = heapState.split(expr, src, dest, oracle);
-		Pair<T, T> tSplit = typeState.split((ValueExpression) expr, src, dest, oracle);
+		Pair<T, T> tSplit = typeState.split((ValueExpression) expr, src, dest, oracle);	
 		Pair<V, V> vSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
 
 		SimpleAbstractState<H, V, T> trueCaseSimpleAbstractState = new SimpleAbstractState<>(
