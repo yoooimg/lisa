@@ -1,5 +1,9 @@
 package it.unive.lisa.analysis.nonrelational.value;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import it.unive.lisa.analysis.SemanticException;
 import it.unive.lisa.analysis.SemanticOracle;
 import it.unive.lisa.analysis.lattices.ExpressionSet;
@@ -12,11 +16,6 @@ import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.ValueExpression;
 import it.unive.lisa.type.Type;
 import it.unive.lisa.type.Untyped;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * An environment for a {@link NonRelationalTypeDomain}, that maps
@@ -114,13 +113,5 @@ public class TypeEnvironment<T extends NonRelationalTypeDomain<T>>
 		if (types.isEmpty())
 			return Untyped.INSTANCE;
 		return Type.commonSupertype(types, Untyped.INSTANCE);
-	}
-	
-	@Override
-	public Pair<TypeEnvironment<T>, TypeEnvironment<T>> split(ValueExpression expr, ProgramPoint src, ProgramPoint dest,
-			SemanticOracle oracle) throws SemanticException {
-		if (isBottom())
-			return Pair.of(bottom(), bottom());
-		return super.split(expr, src, dest, oracle);
 	}
 }

@@ -41,11 +41,11 @@ import it.unive.lisa.util.representation.StructuredRepresentation;
  * @param <T> the type of {@link TypeDomain} embedded in this state
  */
 public class SimpleAbstractState<H extends HeapDomain<H>,
-		V extends ValueDomain<V>,
-		T extends TypeDomain<T>>
-		implements
-		BaseLattice<SimpleAbstractState<H, V, T>>,
-		AbstractState<SimpleAbstractState<H, V, T>> {
+V extends ValueDomain<V>,
+T extends TypeDomain<T>>
+implements
+BaseLattice<SimpleAbstractState<H, V, T>>,
+AbstractState<SimpleAbstractState<H, V, T>> {
 
 	/**
 	 * The key that should be used to store the instance of {@link HeapDomain}
@@ -138,7 +138,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (!expression.mightNeedRewriting()) {
 			ValueExpression ve = (ValueExpression) expression;
 			return new SimpleAbstractState<>(
@@ -154,7 +154,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			return bottom();
 
 		applySubstitution(mo, pp);
-		
+
 		// caso di una sola espressione 
 		if (exprs.elements.size() == 1) {
 			SymbolicExpression expr = exprs.elements.iterator().next();
@@ -165,7 +165,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			V v = mo.value.assign(id, ve, pp, mo);
 			return new SimpleAbstractState<>(mo.heap, v, t);
 		}
-		
+
 		// caso di più espressioni 
 		T typeRes = mo.type.bottom();
 		V valueRes = mo.value.bottom();
@@ -187,7 +187,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (!expression.mightNeedRewriting()) {
 			ValueExpression ve = (ValueExpression) expression;
 			return new SimpleAbstractState<>(
@@ -238,10 +238,10 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	}
 
 	private static <H extends HeapDomain<H>,
-			V extends ValueDomain<V>,
-			T extends TypeDomain<T>> void applySubstitution(
-					MutableOracle<H, V, T> mo,
-					ProgramPoint pp)
+	V extends ValueDomain<V>,
+	T extends TypeDomain<T>> void applySubstitution(
+			MutableOracle<H, V, T> mo,
+			ProgramPoint pp)
 					throws SemanticException {
 		List<HeapReplacement> subs = mo.heap.getSubstitution();
 		if (subs != null)
@@ -261,7 +261,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			ProgramPoint src,
 			ProgramPoint dest,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (!expression.mightNeedRewriting()) {
 			ValueExpression ve = (ValueExpression) expression;
 			H h = heapState.assume(expression, src, dest, this);
@@ -323,7 +323,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		Satisfiability heapsat = heapState.satisfies(expression, pp, this);
 		if (heapsat == Satisfiability.BOTTOM)
 			return Satisfiability.BOTTOM;
@@ -379,7 +379,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> pushScope(
 			ScopeToken scope)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.pushScope(scope),
 				valueState.pushScope(scope),
@@ -389,7 +389,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> popScope(
 			ScopeToken scope)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.popScope(scope),
 				valueState.popScope(scope),
@@ -399,7 +399,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> lubAux(
 			SimpleAbstractState<H, V, T> other)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.lub(other.heapState),
 				valueState.lub(other.valueState),
@@ -409,7 +409,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> glbAux(
 			SimpleAbstractState<H, V, T> other)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.glb(other.heapState),
 				valueState.glb(other.valueState),
@@ -419,7 +419,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> wideningAux(
 			SimpleAbstractState<H, V, T> other)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.widening(other.heapState),
 				valueState.widening(other.valueState),
@@ -429,7 +429,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> narrowingAux(
 			SimpleAbstractState<H, V, T> other)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.narrowing(other.heapState),
 				valueState.narrowing(other.valueState),
@@ -439,7 +439,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public boolean lessOrEqualAux(
 			SimpleAbstractState<H, V, T> other)
-			throws SemanticException {
+					throws SemanticException {
 		return heapState.lessOrEqual(other.heapState)
 				&& valueState.lessOrEqual(other.valueState)
 				&& typeState.lessOrEqual(other.typeState);
@@ -468,7 +468,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> forgetIdentifier(
 			Identifier id)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.forgetIdentifier(id),
 				valueState.forgetIdentifier(id),
@@ -478,7 +478,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	@Override
 	public SimpleAbstractState<H, V, T> forgetIdentifiersIf(
 			Predicate<Identifier> test)
-			throws SemanticException {
+					throws SemanticException {
 		return new SimpleAbstractState<>(
 				heapState.forgetIdentifiersIf(test),
 				valueState.forgetIdentifiersIf(test),
@@ -559,7 +559,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression expression,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		if (!expression.mightNeedRewriting())
 			return new ExpressionSet(expression);
 		return heapState.rewrite(expression, pp, oracle);
@@ -570,7 +570,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			ExpressionSet expressions,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		return heapState.rewrite(expressions, pp, oracle);
 	}
 
@@ -579,7 +579,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		return typeState.getRuntimeTypesOf(e, pp, oracle);
 	}
 
@@ -588,7 +588,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression e,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		return typeState.getDynamicTypeOf(e, pp, oracle);
 	}
 
@@ -614,8 +614,8 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 	}
 
 	private static class MutableOracle<H extends HeapDomain<H>,
-			V extends ValueDomain<V>,
-			T extends TypeDomain<T>> implements SemanticOracle {
+	V extends ValueDomain<V>,
+	T extends TypeDomain<T>> implements SemanticOracle {
 
 		private H heap;
 		private V value;
@@ -635,7 +635,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 				SymbolicExpression expression,
 				ProgramPoint pp,
 				SemanticOracle oracle)
-				throws SemanticException {
+						throws SemanticException {
 			if (!expression.mightNeedRewriting())
 				return new ExpressionSet(expression);
 			return heap.rewrite(expression, pp, this);
@@ -646,7 +646,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 				SymbolicExpression e,
 				ProgramPoint pp,
 				SemanticOracle oracle)
-				throws SemanticException {
+						throws SemanticException {
 			return type.getRuntimeTypesOf(e, pp, this);
 		}
 
@@ -655,7 +655,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 				SymbolicExpression e,
 				ProgramPoint pp,
 				SemanticOracle oracle)
-				throws SemanticException {
+						throws SemanticException {
 			return type.getDynamicTypeOf(e, pp, this);
 		}
 
@@ -681,7 +681,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 				SymbolicExpression y,
 				ProgramPoint pp,
 				SemanticOracle oracle)
-				throws SemanticException {
+						throws SemanticException {
 			return heap.alias(x, y, pp, oracle);
 		}
 
@@ -691,7 +691,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 				SymbolicExpression y,
 				ProgramPoint pp,
 				SemanticOracle oracle)
-				throws SemanticException {
+						throws SemanticException {
 			return heap.isReachableFrom(x, y, pp, oracle);
 		}
 	}
@@ -702,7 +702,7 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression y,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		return heapState.alias(x, y, pp, oracle);
 	}
 
@@ -712,30 +712,28 @@ public class SimpleAbstractState<H extends HeapDomain<H>,
 			SymbolicExpression y,
 			ProgramPoint pp,
 			SemanticOracle oracle)
-			throws SemanticException {
+					throws SemanticException {
 		return heapState.isReachableFrom(x, y, pp, oracle);
 	}
 
 	@Override
 	public Pair<SimpleAbstractState<H, V, T>, SimpleAbstractState<H, V, T>> split(SymbolicExpression expr, ProgramPoint src,
 			ProgramPoint dest, SemanticOracle oracle) throws SemanticException {
+		
+		Pair<H, H> hSplit = heapState.split(expr, src, dest, oracle);
+		Pair<T, T> tSplit = typeState.split((ValueExpression) expr, src, dest, oracle);
+		Pair<V, V> vSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
 
-			Pair<H, H> hSplit = heapState.split(expr, src, dest, oracle);
-			
-			Pair<V, V> vSplit = valueState.split((ValueExpression) expr, src, dest, oracle);
-						
-			Pair<T, T> tSplit = typeState.split((ValueExpression) expr, src, dest, oracle);
-						
-			SimpleAbstractState<H, V, T> trueCaseSimpleAbstractState = new SimpleAbstractState<>(
-					hSplit.getLeft(),
-					vSplit.getLeft(),
-					tSplit.getLeft());
+		SimpleAbstractState<H, V, T> trueCaseSimpleAbstractState = new SimpleAbstractState<>(
+				hSplit.getLeft(),
+				vSplit.getLeft(),
+				tSplit.getLeft());
 
-			SimpleAbstractState<H, V, T> falseCaseSimpleAbstractState = new SimpleAbstractState<>(
-					hSplit.getRight(),
-					vSplit.getRight(),
-					tSplit.getRight());
+		SimpleAbstractState<H, V, T> falseCaseSimpleAbstractState = new SimpleAbstractState<>(
+				hSplit.getRight(),
+				vSplit.getRight(),
+				tSplit.getRight());
 
-			return Pair.of(trueCaseSimpleAbstractState, falseCaseSimpleAbstractState);
+		return Pair.of(trueCaseSimpleAbstractState, falseCaseSimpleAbstractState);
 	}
 }

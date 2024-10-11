@@ -99,6 +99,7 @@ ScopedObject<D> {
 			SemanticOracle oracle)
 					throws SemanticException;
 
+	@SuppressWarnings("unchecked")
 	default Pair<D, D> split(
 			E expr,
 			ProgramPoint src,
@@ -106,23 +107,15 @@ ScopedObject<D> {
 			SemanticOracle oracle)
 					throws SemanticException {
 
-		
-		if (src.getCFG().containsEdge(new TrueEdge((Statement) src, (Statement) dest))) {
-			Statement falseStmt = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof FalseEdge).findFirst().get().getDestination();
+		Statement other;
+		if (src.getCFG().containsEdge(new TrueEdge((Statement) src, (Statement) dest)))
+			other = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof FalseEdge).findFirst().get().getDestination();
+		else
+			other = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof TrueEdge).findFirst().get().getDestination();
 
-			return Pair.of(this.assume(expr, src, dest, oracle),
-					this.assume((E) new UnaryExpression(expr.getStaticType(), 
-							expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, falseStmt, oracle));
-		} 
-		
-		if (src.getCFG().containsEdge(new FalseEdge((Statement) src, (Statement) dest))) {
-			Statement trueStmt = src.getCFG().getOutgoingEdges((Statement) src).stream().filter(e -> e instanceof TrueEdge).findFirst().get().getDestination();
-
-			return Pair.of(this.assume((E) new UnaryExpression(expr.getStaticType(), 
-							expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, trueStmt, oracle), this.assume(expr, src, dest, oracle));
-		} 
-
-		return null;
+		return Pair.of(this.assume(expr, src, dest, oracle),
+				this.assume((E) new UnaryExpression(expr.getStaticType(), 
+						expr, LogicalNegation.INSTANCE, expr.getCodeLocation()), src, other, oracle));
 	}
 
 	/**
