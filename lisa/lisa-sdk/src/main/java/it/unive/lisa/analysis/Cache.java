@@ -47,6 +47,14 @@ public class Cache {
         return InnerKey.containsAll(key, state);
     }
 
+    public static void clearCache() {
+        for (InnerKey key : keys.values()) {
+            key.clearAll();
+        }
+        keys.clear();
+    }
+
+
     public static final class InnerKey {
         final ValueExpression left;
         final ValueExpression right;
@@ -95,6 +103,20 @@ public class Cache {
             AnalysisState<?> right = analysisStates.getRight();
             this.analysisStates.put(state, Pair.of(left, right));
             System.out.println("[Cache]: add pairOfAnalysisState for the given key and abstractState: " + Pair.of(left, right));
+        }
+
+
+        void clearStates() {
+           this.states.clear();
+        }
+
+        void clearAnalysisStates() {
+           this.analysisStates.clear();
+        }
+
+        void clearAll() {
+           clearStates();
+           clearAnalysisStates();
         }
     }
 }
