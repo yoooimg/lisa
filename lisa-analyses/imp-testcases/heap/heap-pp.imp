@@ -1,0 +1,88 @@
+class A {	
+	a;
+	b;
+	
+	f1() {
+		def o1 = new A(1,2); 
+		o1.a = 1;
+		o1.b = 2;
+		o1.a  = o1.b + 1;
+	}
+		
+	f2() {	
+		def o = new A(-1,-1);
+		if (true) {
+			o = new A(0,0);
+		} else {
+			o = new A(1,1);
+		}
+
+	}
+	
+	f3() {	
+		def o = new A(-1,-1);
+		if (true) {
+			o = new A(0,0);
+		} else {
+			o = new A(1,1);
+		}
+			
+		o.a = 2;
+		o.b = 3;
+	}
+	
+	f4() {
+		def o = new int[6];
+		def i = 0;
+		while (true) {
+			o[0] = 0;
+			i = i + 1;
+		}
+	}
+		
+	f5() {
+		def i = 0;
+		def o = new int[6];
+		while(true) {
+			o = new int[6];
+			o[0] = 0;
+			i = i + 1;
+		}
+	}
+	
+	f6() {
+		def x = new int[3];
+		def y = x;
+		x[0] = 1;
+		def a = x[0] + y[0];
+	}
+	
+	f7() {
+		def x = new int[3]; 
+		def y = new int[3]; 
+		def z = x;
+		z = y;  
+		z[0] =  1;
+	}
+	
+	f8() {
+		def x = bump int[3];
+		x[0] = 2;
+		def y = x;
+		y[0] = 1;
+	}
+	
+	f9() {
+		def x = bump A(1,2);
+		x.a = 1;
+		x.b = 2;
+		def y = x;
+		y.a = 3;
+		y.b = 4;
+	}
+	
+	f10() {
+		def x = new A(1,2);
+		x.a = 1;
+	}
+}

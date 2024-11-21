@@ -1,0 +1,77 @@
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = project.name 
+            groupId = 'io.github.lisa-analyzer'
+            from components.java
+            pom {
+                name = 'LiSA (' + project.name + ')' 
+                description = 'A library for static analysis'
+                url = 'https://lisa-analyzer.github.io/'
+                packaging = 'jar'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'lucaneg'
+                        name = 'Luca Negrini'
+                        email = 'luca.negrini@unive.it'
+                        url = 'https://lucaneg.github.io/'
+                        organization = 'Ca\' Foscari University of Venice, Italy'
+                        organizationUrl = 'https://www.unive.it/'
+                    }
+                    developer {
+                        id = 'VincenzoArceri'
+                        name = 'Vincenzo Arceri'
+                        email = 'vincenzo.arceri@unive.it'
+                        url = 'https://vincenzoarceri.github.io/'
+                        organization = 'Ca\' Foscari University of Venice, Italy'
+                        organizationUrl = 'https://www.unive.it/'
+                    }
+                    developer {
+                        id = 'pietroferrara'
+                        name = 'Pietro Ferrara'
+                        email = 'pietro.ferrara@unive.it'
+                        url = 'https://www.dais.unive.it/~ferrara/'
+                        organization = 'Ca\' Foscari University of Venice, Italy'
+                        organizationUrl = 'https://www.unive.it/'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/lisa-analyzer/lisa.git'
+                    developerConnection = 'scm:git:ssh://github.com/lisa-analyzer/lisa.git'
+                    url = 'https://github.com/lisa-analyzer/lisa'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'OSSRH'
+            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username = System.getenv('MAVEN_USERNAME')
+                password = System.getenv('MAVEN_PASSWORD')
+            }
+        }
+        maven {
+            name = 'GitHubPackages'
+            url = 'https://maven.pkg.github.com/lisa-analyzer/lisa'
+            credentials {
+                username = System.getenv('GITHUB_ACTOR')
+                password = System.getenv('GITHUB_TOKEN')
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = System.getenv('SIGN_KEY')
+    def signingPassword = System.getenv('SIGN_PW')
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+}
