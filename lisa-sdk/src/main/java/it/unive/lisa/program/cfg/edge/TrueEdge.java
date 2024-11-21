@@ -43,15 +43,14 @@ public class TrueEdge extends Edge {
 			AnalysisState<A> state)
 			throws SemanticException {
 
-		ExpressionSet exprs = state.getComputedExpressions();
+		AnalysisState<?> trueState;
 		Pair<AnalysisState<A>, AnalysisState<A>> splitted;
 
-		AnalysisState<?> trueState;
 		AnalysisState<A> result = state.bottom();
+		ExpressionSet exprs = state.getComputedExpressions();
 
 		for (SymbolicExpression expr : exprs) {
 			if (expr instanceof BinaryExpression) {
-
 				BinaryExpression binary = (BinaryExpression) expr;
 				key = Cache.createKey(binary);
 
@@ -62,11 +61,13 @@ public class TrueEdge extends Edge {
 					Cache.putAnalysisStates(key, state, splitted);
 					trueState = splitted.getLeft();
 				}
+
 			} else {
 				trueState = state.assume(expr, getSource(), getDestination());
 			}
 			result = result.lub((AnalysisState<A>) trueState);
 		}
+
 		return result;
 	}
 
