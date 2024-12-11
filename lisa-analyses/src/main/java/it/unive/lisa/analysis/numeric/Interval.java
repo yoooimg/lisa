@@ -13,12 +13,7 @@ import it.unive.lisa.symbolic.value.Constant;
 import it.unive.lisa.symbolic.value.Identifier;
 import it.unive.lisa.symbolic.value.UnaryExpression;
 import it.unive.lisa.symbolic.value.ValueExpression;
-import it.unive.lisa.symbolic.value.operator.AdditionOperator;
-import it.unive.lisa.symbolic.value.operator.DivisionOperator;
-import it.unive.lisa.symbolic.value.operator.ModuloOperator;
-import it.unive.lisa.symbolic.value.operator.MultiplicationOperator;
-import it.unive.lisa.symbolic.value.operator.RemainderOperator;
-import it.unive.lisa.symbolic.value.operator.SubtractionOperator;
+import it.unive.lisa.symbolic.value.operator.*;
 import it.unive.lisa.symbolic.value.operator.binary.BinaryOperator;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonEq;
 import it.unive.lisa.symbolic.value.operator.binary.ComparisonGe;
@@ -519,31 +514,32 @@ public class Interval implements BaseNonRelationalValueDomain<Interval>, Compara
 					src, dest, oracle));
 		}
 
-		BinaryOperator operator = ((BinaryExpression) expr).getOperator();
 		ValueExpression left = (ValueExpression) ((BinaryExpression) expr).getLeft();
 		ValueExpression right = (ValueExpression) ((BinaryExpression) expr).getRight();
-		BinaryOperator t = null;
-		BinaryOperator f = null;
-		if (operator == ComparisonEq.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonEq.INSTANCE.opposite();
-		} else if (operator == ComparisonNe.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonNe.INSTANCE.opposite();
-		} else if (operator == ComparisonGt.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonGt.INSTANCE.opposite();
-		} else if (operator == ComparisonLe.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonLe.INSTANCE.opposite();
-		} else if (operator == ComparisonGe.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonGe.INSTANCE.opposite();
-		} else if (operator == ComparisonLt.INSTANCE) {
-			t = operator;
-			f = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
-		}
-		return Pair.of(Interval.ZERO.assumeBinaryExpression(environment, t, left, right, src, dest, oracle),
-				Interval.ZERO.assumeBinaryExpression(environment, f, left, right, src, dest, oracle));
+
+		BinaryOperator op = ((BinaryExpression) expr).getOperator();
+		BinaryOperator negOp;
+
+//		if (op == ComparisonEq.INSTANCE) {
+//			negOp = (BinaryOperator) ComparisonEq.INSTANCE.opposite();
+//		} else if (op == ComparisonNe.INSTANCE) {
+//			negOp = (BinaryOperator) ComparisonNe.INSTANCE.opposite();
+//		} else if (op == ComparisonGt.INSTANCE) {
+//			negOp = (BinaryOperator) ComparisonGt.INSTANCE.opposite();
+//		} else if (op == ComparisonLe.INSTANCE) {
+//			negOp = (BinaryOperator) ComparisonLe.INSTANCE.opposite();
+//		} else if (op == ComparisonGe.INSTANCE) {
+//			negOp = (BinaryOperator) ComparisonGe.INSTANCE.opposite();
+//		} else if (op == ComparisonLt.INSTANCE) {
+//			negOp = (BinaryOperator) ComparisonLt.INSTANCE.opposite();
+//		}
+
+		negOp = (BinaryOperator) ((NegatableOperator) op).opposite();
+
+		return Pair.of(Interval.ZERO.assumeBinaryExpression(environment, op, left, right, src, dest, oracle),
+				Interval.ZERO.assumeBinaryExpression(environment, negOp, left, right, src, dest, oracle));
 	}
 }
+
+
+

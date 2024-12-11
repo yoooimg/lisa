@@ -47,7 +47,7 @@ public class FalseEdge extends Edge {
 			throws SemanticException {
 
 		AnalysisState<?> falseState;
-		Pair<AnalysisState<A>, AnalysisState<A>> splitted;
+		Pair<AnalysisState<A>, AnalysisState<A>> splitResult;
 
 		AnalysisState<A> result = state.bottom();
 		ExpressionSet exprs = state.getComputedExpressions();
@@ -60,18 +60,18 @@ public class FalseEdge extends Edge {
 				if (Cache.containsKeyAndState(key, state)) {
 					falseState = Cache.getAnalysisStates(key, state).getRight();
 				} else {
-					splitted = state.split(binary, getSource(), getDestination());
-					Cache.putAnalysisStates(key, state, splitted);
-					falseState = splitted.getLeft();
+					splitResult = state.split(binary, getSource(), getDestination());
+					Cache.putAnalysisStates(key, state, splitResult);
+					falseState = splitResult.getRight();
 				}
 
 			} else {
-				UnaryExpression negated = new UnaryExpression(
+				UnaryExpression negExpr = new UnaryExpression(
 						expr.getStaticType(),
 						expr,
 						LogicalNegation.INSTANCE,
 						expr.getCodeLocation());
-				falseState = state.assume(negated, getSource(), getDestination());
+				falseState = state.assume(negExpr, getSource(), getDestination());
 			}
 			result = result.lub((AnalysisState<A>) falseState);
 		}
